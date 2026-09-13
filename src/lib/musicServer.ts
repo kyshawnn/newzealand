@@ -29,6 +29,21 @@ export function cleanHtml(str: string): string {
     .trim();
 }
 
+export function cleanString(val: any, fallback = ''): string {
+  if (val === null || val === undefined) return fallback;
+  if (typeof val === 'string') return cleanHtml(val).trim();
+  if (typeof val === 'number') return String(val);
+  if (typeof val?.name === 'string') return cleanHtml(val.name).trim();
+  if (typeof val?.title === 'string') return cleanHtml(val.title).trim();
+  if (Array.isArray(val)) {
+    return val
+      .map((v) => cleanString(v))
+      .filter(Boolean)
+      .join(', ') || fallback;
+  }
+  return fallback;
+}
+
 export function decryptMediaUrl(encryptedMediaUrl: string): { primaryUrl: string; quality320: string; quality160: string } | null {
   try {
     const key = CryptoJS.enc.Utf8.parse('38346591');
@@ -84,10 +99,13 @@ export async function scrapeDirectYouTube(query: string, limit = 25): Promise<So
           'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
         'Accept-Language': 'id-ID,id;q=0.9,en-US;q=0.8,en;q=0.7',
       },
-      signal: AbortSignal.timeout(4000),
+      signal: AbortSignal.timeout(2500),
     });
 
-    if (!res.ok) return [];
+    if (!res.ok) {
+      console.warn(`[scrapeDirectYouTube] HTTP ${res.status} for "${query}"`);
+      return [];
+    }
 
     const html = await res.text();
     const match = html.match(/var ytInitialData = ({.*?});<\/script>/);
@@ -112,11 +130,13 @@ export async function scrapeDirectYouTube(query: string, limit = 25): Promise<So
           // Exclude live streams
           if (vr.badges && JSON.stringify(vr.badges).includes('LIVE')) continue;
 
-          const title = vr.title?.runs?.map((r: any) => r.text).join('') || '';
-          const artist =
+          const rawTitle = vr.title?.runs?.map((r: any) => r.text).join('') || '';
+          const rawArtist =
             vr.ownerText?.runs?.map((r: any) => r.text).join('') ||
             vr.longBylineText?.runs?.map((r: any) => r.text).join('') ||
             'Artis';
+          const title = cleanString(rawTitle, 'Lagu');
+          const artist = cleanString(rawArtist, 'Artis');
           const durationStr = vr.lengthText?.simpleText;
           const duration = parseDurationToSeconds(durationStr);
 
@@ -124,10 +144,10 @@ export async function scrapeDirectYouTube(query: string, limit = 25): Promise<So
           results.push({
             id: `yt_${videoId}`,
             videoId,
-            title: title.trim(),
-            name: title.trim(),
-            artist: artist.trim(),
-            artists: artist.trim(),
+            title,
+            name: title,
+            artist,
+            artists: artist,
             album: 'YouTube Music',
             duration,
             image: `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
@@ -139,7 +159,7 @@ export async function scrapeDirectYouTube(query: string, limit = 25): Promise<So
 
     return results;
   } catch (err: any) {
-    console.warn(`[scrapeDirectYouTube] Failed for "${query}":`, err?.message || err);
+    console.warn(`[scrapeDirectYouTube] Failed for "${query}":`, err?.name, err?.message);
     return [];
   }
 }
@@ -148,50 +168,63 @@ export async function scrapeDirectYouTube(query: string, limit = 25): Promise<So
  * Fetch YouTube tracks with fallback to direct scraper
  */
 export async function fetchYtTracks(query: string): Promise<SongItem[]> {
-  // 1. Try risyadh-musik API with strict 3.5s timeout
+  // 1. Try risyadh-musik API with safe 3.0s timeout
   try {
     const ytUrl = `https://risyadh-musik.vercel.app/api/search?q=${encodeURIComponent(query)}&type=song`;
     const ytRes = await fetch(ytUrl, {
-      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' },
-      signal: AbortSignal.timeout(3500),
-    })
-      .then((r) => (r.ok ? r.json() : []))
-      .catch(() => []);
+      headers: {
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        Accept: 'application/json, text/plain, */*',
+      },
+      signal: AbortSignal.timeout(3000),
+    });
 
-    if (Array.isArray(ytRes) && ytRes.length > 0) {
-      const valid = ytRes
-        .filter((item: any) => item.videoId || (item.type === 'SONG' && item.id))
-        .map((item: any) => {
-          const vId = item.videoId || item.id;
-          let bestThumb = item.thumbnails?.[item.thumbnails.length - 1]?.url || item.thumbnail;
-          if (bestThumb && bestThumb.includes('googleusercontent.com')) {
-            bestThumb = bestThumb.replace(/=w\d+-h\d+.*$/, '=w600-h600-l90-rj');
-          }
-          if (!bestThumb) {
-            bestThumb = `https://i.ytimg.com/vi/${vId}/hqdefault.jpg`;
-          }
-          const t = (item.name || item.title || '').trim();
-          const a = typeof item.artist === 'string' ? item.artist : item.artist?.name || item.artists || 'Artis';
-          return {
-            id: `yt_${vId}`,
-            videoId: vId,
-            title: t,
-            name: t,
-            artist: a,
-            artists: a,
-            album: item.album?.name || 'YouTube Music',
-            duration: typeof item.duration === 'number' ? item.duration : 210,
-            image: bestThumb,
-            source: 'youtube' as const,
-          };
-        });
+    if (!ytRes.ok) {
+      console.warn(`[fetchYtTracks] risyadh-musik HTTP ${ytRes.status} for "${query}"`);
+    } else {
+      const data = await ytRes.json().catch((err) => {
+        console.warn(`[fetchYtTracks] JSON parse error for "${query}":`, err?.message);
+        return [];
+      });
 
-      if (valid.length > 0) {
-        return valid;
+      if (Array.isArray(data) && data.length > 0) {
+        const valid = data
+          .filter((item: any) => item && (item.videoId || (item.type === 'SONG' && item.id)))
+          .map((item: any) => {
+            const vId = item.videoId || item.id;
+            let bestThumb = item.thumbnails?.[item.thumbnails.length - 1]?.url || item.thumbnail;
+            if (bestThumb && bestThumb.includes('googleusercontent.com')) {
+              bestThumb = bestThumb.replace(/=w\d+-h\d+.*$/, '=w600-h600-l90-rj');
+            }
+            if (!bestThumb) {
+              bestThumb = `https://i.ytimg.com/vi/${vId}/hqdefault.jpg`;
+            }
+            const t = cleanString(item.name || item.title, 'Lagu');
+            const a = cleanString(item.artist || item.artists, 'Artis');
+            const alb = cleanString(item.album, 'YouTube Music');
+
+            return {
+              id: `yt_${vId}`,
+              videoId: vId,
+              title: t,
+              name: t,
+              artist: a,
+              artists: a,
+              album: alb,
+              duration: typeof item.duration === 'number' ? item.duration : 210,
+              image: bestThumb,
+              source: 'youtube' as const,
+            };
+          });
+
+        if (valid.length > 0) {
+          return valid;
+        }
       }
     }
   } catch (err: any) {
-    console.warn(`[fetchYtTracks] risyadh-musik failed for "${query}":`, err?.message || err);
+    console.warn(`[fetchYtTracks] risyadh-musik error for "${query}":`, err?.name, err?.message);
   }
 
   // 2. Direct fallback to YouTube scraper
@@ -217,15 +250,21 @@ export async function fetchSongsDirectly(query: string): Promise<SongItem[]> {
         `https://www.jiosaavn.com/api.php?__call=search.getResults&_format=json&_marker=0&cc=in&includeMetaTags=1&q=${encodeURIComponent(
           query
         )}&p=1&n=20`,
-        { headers, signal: AbortSignal.timeout(3500) }
+        { headers, signal: AbortSignal.timeout(2500) }
       )
-        .then((r) => (r.ok ? r.json() : null))
-        .catch(() => null),
+        .then(async (r) => (r.ok ? r.json().catch(() => null) : null))
+        .catch((err) => {
+          console.warn(`[fetchSongsDirectly] JioSaavn network error for "${query}":`, err?.name, err?.message);
+          return null;
+        }),
       fetch(`https://discoveryprovider.audius.co/v1/tracks/search?query=${encodeURIComponent(query)}&app_name=spotify_web_app`, {
-        signal: AbortSignal.timeout(3500),
+        signal: AbortSignal.timeout(2500),
       })
-        .then((r) => (r.ok ? r.json() : null))
-        .catch(() => null),
+        .then(async (r) => (r.ok ? r.json().catch(() => null) : null))
+        .catch((err) => {
+          console.warn(`[fetchSongsDirectly] Audius network error for "${query}":`, err?.name, err?.message);
+          return null;
+        }),
     ]);
 
     if (searchRes?.results && Array.isArray(searchRes.results)) {
@@ -234,11 +273,16 @@ export async function fetchSongsDirectly(query: string): Promise<SongItem[]> {
           const urls = decryptMediaUrl(item.encrypted_media_url);
           if (urls) {
             seenIds.add(item.id);
+            const title = cleanString(item.song, 'Lagu');
+            const artist = cleanString(item.primary_artists || item.singers || item.music, 'Artis');
+            const album = cleanString(item.album, 'Single');
             songs.push({
               id: `saavn_${item.id}`,
-              title: cleanHtml(item.song),
-              artist: cleanHtml(item.primary_artists || item.singers || item.music || 'Unknown Artist'),
-              album: cleanHtml(item.album || 'Single'),
+              title,
+              name: title,
+              artist,
+              artists: artist,
+              album,
               duration: parseInt(item.duration, 10) || 180,
               image: (item.image || '').replace('150x150', '500x500').replace('50x50', '500x500'),
               streamUrl: urls.primaryUrl,
@@ -258,11 +302,16 @@ export async function fetchSongsDirectly(query: string): Promise<SongItem[]> {
           seenIds.add(String(track.track_id));
           const artwork = track.artwork?.['480x480'] || track.artwork?.['150x150'] || '';
           const stream = `https://discoveryprovider.audius.co/v1/tracks/${track.track_id}/stream?app_name=spotify_web_app`;
+          const title = cleanString(track.title, 'Lagu');
+          const artist = cleanString(track.user?.name, 'Audius Creator');
+          const album = cleanString(track.genre, 'Single');
           songs.push({
             id: `audius_${track.track_id}`,
-            title: cleanHtml(track.title),
-            artist: cleanHtml(track.user?.name || 'Audius Creator'),
-            album: cleanHtml(track.genre || 'Single'),
+            title,
+            name: title,
+            artist,
+            artists: artist,
+            album,
             duration: Math.round(track.duration) || 180,
             image: artwork,
             streamUrl: stream,
@@ -273,8 +322,8 @@ export async function fetchSongsDirectly(query: string): Promise<SongItem[]> {
         }
       }
     }
-  } catch (err) {
-    console.error('Error fetching songs directly:', err);
+  } catch (err: any) {
+    console.warn(`[fetchSongsDirectly] Unexpected error for "${query}":`, err?.name, err?.message);
   }
 
   return songs;
@@ -288,23 +337,33 @@ export async function searchInternalMusic(query: string): Promise<SongItem[]> {
   const seenIds = new Set<string>();
 
   try {
-    const ytSongs = await fetchYtTracks(query);
+    // Run YouTube and Direct fetchers concurrently to prevent cascading serial latency
+    const [ytSongs, directSongs] = await Promise.all([
+      fetchYtTracks(query).catch((e) => {
+        console.warn(`[searchInternalMusic] fetchYtTracks warning for "${query}":`, e?.name, e?.message);
+        return [];
+      }),
+      fetchSongsDirectly(query).catch((e) => {
+        console.warn(`[searchInternalMusic] fetchSongsDirectly warning for "${query}":`, e?.name, e?.message);
+        return [];
+      }),
+    ]);
+
     for (const song of ytSongs) {
-      if (!seenIds.has(song.id)) {
+      if (song && song.id && !seenIds.has(song.id)) {
         seenIds.add(song.id);
         results.push(song);
       }
     }
 
-    const directSongs = await fetchSongsDirectly(query);
     for (const s of directSongs) {
-      if (!seenIds.has(s.id)) {
+      if (s && s.id && !seenIds.has(s.id)) {
         seenIds.add(s.id);
         results.push(s);
       }
     }
-  } catch (err) {
-    console.error('Error in searchInternalMusic:', err);
+  } catch (err: any) {
+    console.warn(`[searchInternalMusic] Error for "${query}":`, err?.name, err?.message);
   }
 
   return results;

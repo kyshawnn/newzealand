@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useEffect, useRef } from 'react';
 import {
   Search as SearchIcon,
@@ -187,16 +189,24 @@ export const SearchView: React.FC = () => {
         cover = `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
       }
 
+      const artistStr =
+        typeof item.artist === 'string'
+          ? item.artist
+          : item.artist?.name ||
+            (typeof item.artists === 'string' ? item.artists : 'Artis');
+
+      const albumStr =
+        typeof item.album === 'string'
+          ? item.album
+          : item.album?.name || 'Single';
+
       mapped.push({
         id: uniqueId,
         videoId: videoId || undefined,
         title: item.title || item.name || 'Lagu',
         name: item.title || item.name || 'Lagu',
-        artist:
-          typeof item.artist === 'string'
-            ? item.artist
-            : item.artist?.name || item.artists || 'Artis',
-        album: item.album?.name || (typeof item.album === 'string' ? item.album : 'Single'),
+        artist: artistStr,
+        album: albumStr,
         duration: typeof item.duration === 'number' ? item.duration : 200,
         image: cover || DEFAULT_COVER,
         source: 'youtube',
@@ -760,7 +770,7 @@ export const SearchView: React.FC = () => {
                     {alb.name}
                   </h5>
                   <p className="text-[11px] text-white/50 px-1 truncate mt-0.5">
-                    {alb.artist || 'Artis'} {alb.year ? `• ${alb.year}` : ''}
+                    {(typeof alb.artist === 'string' ? alb.artist : alb.artist?.name) || 'Artis'} {alb.year ? `• ${alb.year}` : ''}
                   </p>
                 </div>
               ))}

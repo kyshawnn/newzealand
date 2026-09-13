@@ -4,10 +4,12 @@ import {
   fetchSongsDirectly,
   searchInternalMusic,
   scrapeDirectYouTube,
+  cleanString,
 } from '@/src/lib/musicServer';
 
 export const dynamic = 'force-dynamic';
-export const maxDuration = 15;
+export const runtime = 'nodejs';
+export const maxDuration = 10;
 
 export async function GET(req: NextRequest) {
   const startTime = Date.now();
@@ -20,7 +22,7 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    if (type === 'song') {
+    if (type === 'song' || type === 'video') {
       const tokens = query
         .toLowerCase()
         .replace(/[^\p{L}\p{N}\s]/gu, ' ')
@@ -29,19 +31,19 @@ export async function GET(req: NextRequest) {
 
       const queryLower = query.toLowerCase();
 
-      // Focused variations to prevent serverless timeout / rate limits
-      const searchVariations = [query, `${query} lagu`];
-      if (tokens.length >= 2) {
-        searchVariations.push(`${tokens[0]} ${tokens[1]}`);
+      // Focused variations to prevent serverless timeout / external rate limits
+      const searchVariations = [query];
+      if (tokens.length >= 1) {
+        searchVariations.push(`${query} lagu`);
       }
 
-      // Concurrently query YouTube & internal music providers with safe timeouts
-      const [scrapedBatches, internalSongs] = await Promise.all([
+      // Concurrently query YouTube & direct music providers without redundant duplicates
+      const [scrapedBatches, directSongs] = await Promise.all([
         Promise.allSettled(
-          searchVariations.slice(0, 3).map((v) => fetchYtTracks(v))
+          searchVariations.slice(0, 2).map((v) => fetchYtTracks(v))
         ),
-        searchInternalMusic(query).catch((err) => {
-          console.warn('[Search] internal music fallback warning:', err?.message || err);
+        fetchSongsDirectly(query).catch((err) => {
+          console.warn('[Search] direct songs fallback warning:', err?.name, err?.message);
           return [];
         }),
       ]);
@@ -59,23 +61,24 @@ export async function GET(req: NextRequest) {
         }
       });
 
-      if (Array.isArray(internalSongs)) {
-        for (const s of internalSongs) {
+      if (Array.isArray(directSongs)) {
+        for (const s of directSongs) {
           pool.push({
             type: 'SONG',
             videoId: s.id.startsWith('yt_') ? s.id.replace('yt_', '') : s.videoId || undefined,
             id: s.id,
             name: s.title,
             title: s.title,
-            artist: { name: s.artist },
+            artist: s.artist,
             artists: s.artist,
-            album: { name: s.album },
+            album: s.album,
             duration: s.duration,
             thumbnails: [{ url: s.image, width: 500, height: 500 }],
             thumbnail: s.image,
             streamUrl: s.streamUrl,
             quality320: s.quality320,
             quality160: s.quality160,
+            source: s.source || 'saavn',
             _batchIdx: 1,
             _itemIdx: 0,
           });
@@ -91,19 +94,9 @@ export async function GET(req: NextRequest) {
         const uniqueKey = videoId || item.id;
         if (!uniqueKey || seenIds.has(uniqueKey)) continue;
 
-        const title = (item.name || item.title || '').toLowerCase().trim();
-        const artist = (
-          typeof item.artist === 'string'
-            ? item.artist
-            : item.artist?.name || item.artists || ''
-        )
-          .toLowerCase()
-          .trim();
-        const album = (
-          typeof item.album === 'string' ? item.album : item.album?.name || ''
-        )
-          .toLowerCase()
-          .trim();
+        const title = cleanString(item.name || item.title, '').toLowerCase();
+        const artist = cleanString(item.artist || item.artists, '').toLowerCase();
+        const album = cleanString(item.album, '').toLowerCase();
         const full = `${title} ${artist} ${album}`;
 
         // Reject multi-hour compilations and placeholder titles
@@ -177,11 +170,9 @@ export async function GET(req: NextRequest) {
           bestThumb = `https://i.ytimg.com/vi/${vId}/hqdefault.jpg`;
         }
 
-        const t = (item.name || item.title || '').trim();
-        const a =
-          typeof item.artist === 'string'
-            ? item.artist
-            : item.artist?.name || item.artists || 'Artis';
+        const t = cleanString(item.name || item.title, 'Lagu');
+        const a = cleanString(item.artist || item.artists, 'Artis');
+        const alb = cleanString(item.album, 'YouTube Music');
 
         return {
           id: `yt_${vId || item.id}`,
@@ -190,7 +181,7 @@ export async function GET(req: NextRequest) {
           name: t,
           artist: a,
           artists: a,
-          album: typeof item.album === 'string' ? item.album : item.album?.name || 'YouTube Music',
+          album: alb,
           duration: typeof item.duration === 'number' ? item.duration : 210,
           image: bestThumb || 'https://i.ytimg.com/vi/default/hqdefault.jpg',
           streamUrl: item.streamUrl,
@@ -212,7 +203,7 @@ export async function GET(req: NextRequest) {
         }
       }
 
-      console.log(`[API /api/search] type=song, query="${query}", results=${formatted.length}, took=${Date.now() - startTime}ms`);
+      console.log(`[API /api/search] type=${type}, query="${query}", results=${formatted.length}, took=${Date.now() - startTime}ms`);
       return NextResponse.json(formatted);
     }
 
@@ -221,17 +212,65 @@ export async function GET(req: NextRequest) {
     let results: any[] = [];
     try {
       const ytRes = await fetch(ytUrl, {
-        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' },
-        signal: AbortSignal.timeout(4000),
+        headers: {
+          'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+          Accept: 'application/json, text/plain, */*',
+        },
+        signal: AbortSignal.timeout(3000),
       });
       if (ytRes.ok) {
-        const data = await ytRes.json();
-        if (Array.isArray(data)) {
-          results = data;
+        const data = await ytRes.json().catch((err) => {
+          console.warn(`[Search] JSON parse error for "${query}" (type=${type}):`, err?.message);
+          return [];
+        });
+        if (Array.isArray(data) && data.length > 0) {
+          if (type === 'album') {
+            results = data.map((item: any) => ({
+              type: 'ALBUM',
+              albumId: item.albumId || item.album?.albumId || item.id || `alb_${encodeURIComponent(cleanString(item.name || item.title, 'Album'))}`,
+              name: cleanString(item.album?.name || item.name || item.title, 'Album'),
+              artist: cleanString(item.artist || item.artists, 'Artis'),
+              year: item.year || '2024',
+              thumbnail:
+                item.thumbnail ||
+                item.thumbnails?.[item.thumbnails.length - 1]?.url ||
+                item.image ||
+                'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400',
+            }));
+          } else if (type === 'artist') {
+            results = data.map((item: any) => ({
+              type: 'ARTIST',
+              artistId: item.artistId || item.id || `art_${encodeURIComponent(cleanString(item.name, 'Artis'))}`,
+              name: cleanString(item.name, 'Artis'),
+              thumbnail:
+                item.thumbnail ||
+                item.thumbnails?.[item.thumbnails.length - 1]?.url ||
+                item.image ||
+                'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300',
+              subscribers: cleanString(item.subscribers, 'Artis Populer'),
+            }));
+          } else if (type === 'playlist') {
+            results = data.map((item: any) => ({
+              type: 'PLAYLIST',
+              playlistId: item.playlistId || item.id || `pl_${encodeURIComponent(cleanString(item.name, 'Playlist'))}`,
+              name: cleanString(item.name, 'Playlist'),
+              trackCount: cleanString(item.trackCount || item.count, 'Daftar Putar'),
+              thumbnail:
+                item.thumbnail ||
+                item.thumbnails?.[item.thumbnails.length - 1]?.url ||
+                item.image ||
+                'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400',
+            }));
+          } else {
+            results = data;
+          }
         }
+      } else {
+        console.warn(`[Search] risyadh-musik HTTP ${ytRes.status} for "${query}" (type=${type})`);
       }
     } catch (err: any) {
-      console.warn(`[Search] risyadh-musik non-song search failed for "${query}":`, err?.message || err);
+      console.warn(`[Search] risyadh-musik non-song search failed for "${query}":`, err?.name, err?.message);
     }
 
     if (results.length === 0) {
@@ -240,8 +279,9 @@ export async function GET(req: NextRequest) {
         const seenArtists = new Set<string>();
         results = fallbackSongs
           .filter((s) => {
-            if (seenArtists.has(s.artist)) return false;
-            seenArtists.add(s.artist);
+            const aName = cleanString(s.artist, '');
+            if (!aName || seenArtists.has(aName)) return false;
+            seenArtists.add(aName);
             return true;
           })
           .map((s) => ({
@@ -255,8 +295,8 @@ export async function GET(req: NextRequest) {
         results = fallbackSongs.slice(0, 5).map((s) => ({
           type: 'ALBUM',
           albumId: 'alb_' + encodeURIComponent(s.album),
-          name: s.album,
-          artist: s.artist,
+          name: cleanString(s.album, 'Album'),
+          artist: cleanString(s.artist, 'Artis'),
           year: s.year || '2024',
           thumbnail: s.image,
         }));
@@ -277,7 +317,7 @@ export async function GET(req: NextRequest) {
     console.log(`[API /api/search] type=${type}, query="${query}", results=${results.length}, took=${Date.now() - startTime}ms`);
     return NextResponse.json(results);
   } catch (err: any) {
-    console.error(`[API /api/search] Error:`, err);
+    console.error(`[API /api/search] Unhandled Error for query "${query}":`, err?.name, err?.message, err?.stack);
     return NextResponse.json([]);
   }
 }

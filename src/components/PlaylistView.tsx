@@ -165,7 +165,7 @@ export const PlaylistView: React.FC = () => {
 
   const bannerCover = firstSongCover || validCustomCover || '';
 
-  if (isLoading) {
+  if (isLoading || (!isUserPlaylist && songs.length <= 4)) {
     return (
       <PlaylistDetailSkeleton
         onBack={() => {
@@ -245,10 +245,6 @@ export const PlaylistView: React.FC = () => {
         {/* Hero Bottom Info (Title + Badges + Action Buttons Row) */}
         <div className="absolute bottom-4 left-0 right-0 px-5 sm:px-8 z-20">
           <div className="flex items-center gap-2 mb-2">
-            <span className="px-3 py-1 rounded-full bg-emerald-600/90 backdrop-blur-md text-[10px] sm:text-xs font-bold uppercase tracking-wider text-white flex items-center gap-1.5 shadow-lg">
-              <Sparkles className="w-3.5 h-3.5 fill-current" />
-              {isUserPlaylist ? 'Koleksi Pribadi' : 'Daftar Putar'}
-            </span>
             <span className="px-3 py-1 rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-[10px] sm:text-xs font-medium text-white/80">
               {songs.length} Lagu
             </span>

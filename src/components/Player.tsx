@@ -385,11 +385,8 @@ export const Player: React.FC = () => {
             </button>
 
             <div className="text-center">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-white/50">
-                Memutar Sekarang
-              </span>
-              <p className="text-xs font-semibold text-white/90 truncate max-w-[180px]">
-                {currentSong.album || 'Top Hits'}
+              <p className="text-xs font-semibold text-white/90 truncate max-w-[200px]">
+                {currentSong.album || currentSong.title || 'Musik'}
               </p>
             </div>
 
@@ -477,10 +474,10 @@ export const Player: React.FC = () => {
 
           {/* TAB 1: TRACK VIEW (Artwork, Scrub Bar, Controls) */}
           {activeTab === 'track' && (
-            <div className="flex-1 min-h-0 flex flex-col justify-between max-w-md mx-auto w-full py-1 relative z-10">
-              {/* Dynamic Artwork Scaling to fit any screen height without top gaps */}
-              <div className="flex-1 min-h-0 flex items-center justify-center py-2">
-                <div className="relative aspect-square max-h-[42vh] max-w-[80vw] w-full mx-auto rounded-[28px] sm:rounded-[36px] overflow-hidden shadow-2xl bg-neutral-900 border border-white/10">
+            <div className="flex-1 min-h-0 flex flex-col justify-between max-w-md mx-auto w-full py-1 overflow-y-auto no-scrollbar relative z-10">
+              {/* Dynamic Artwork Scaling to fit any screen height without gaps or cutting off */}
+              <div className="flex-1 min-h-0 flex items-center justify-center py-2 shrink">
+                <div className="relative aspect-square max-h-[36vh] sm:max-h-[42vh] max-w-[70vw] sm:max-w-[340px] w-full mx-auto rounded-[28px] sm:rounded-[36px] overflow-hidden shadow-2xl bg-neutral-900 border border-white/10">
                   <img
                     src={songImage}
                     alt={currentSong.title || currentSong.name}
@@ -491,7 +488,7 @@ export const Player: React.FC = () => {
               </div>
 
               {/* Bottom Controls Area */}
-              <div className="shrink-0 space-y-2.5 sm:space-y-3 pb-1">
+              <div className="shrink-0 space-y-2.5 sm:space-y-3 pb-3 sm:pb-4 pt-1">
                 {/* Title & Artist & Like */}
                 <div className="flex items-center justify-between px-1">
                   <div className="min-w-0 flex-1 pr-3">

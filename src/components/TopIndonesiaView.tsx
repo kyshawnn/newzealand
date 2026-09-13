@@ -161,15 +161,9 @@ export const TopIndonesiaView: React.FC = () => {
 
         {/* Hero Bottom Info (Title + Badges + Action Buttons Row) */}
         <div className="absolute bottom-4 left-0 right-0 px-5 sm:px-8 z-20">
-          {/* Category Pill */}
           <div className="flex items-center gap-2 mb-2">
-            <span className="px-3 py-1 rounded-full bg-red-600/90 backdrop-blur-md text-[10px] sm:text-xs font-bold uppercase tracking-wider text-white flex items-center gap-1.5 shadow-lg">
-              <Flame className="w-3.5 h-3.5 fill-current" />
-              Chart Resmi Indonesia
-            </span>
-            <span className="px-3 py-1 rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-[10px] sm:text-xs font-medium text-white/80 flex items-center gap-1">
-              <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
-              Diperbarui Mingguan
+            <span className="px-3 py-1 rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-[10px] sm:text-xs font-medium text-white/80">
+              {topSongs.length || 50} Lagu
             </span>
           </div>
 

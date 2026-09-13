@@ -168,7 +168,9 @@ export const SearchView: React.FC = () => {
 
     for (const item of data) {
       const videoId =
-        item.videoId || (item.type === 'SONG' || item.type === 'VIDEO' ? item.id : null);
+        item.videoId ||
+        (item.type === 'SONG' || item.type === 'VIDEO' ? item.id : null) ||
+        (typeof item.id === 'string' && item.id.startsWith('yt_') ? item.id.replace('yt_', '') : undefined);
       const uniqueId = videoId
         ? `yt_${videoId}`
         : item.id || `track_${Date.now()}_${Math.random()}`;
@@ -177,12 +179,14 @@ export const SearchView: React.FC = () => {
       seenIds.add(uniqueId);
 
       let cover =
+        item.image ||
         item.thumbnail ||
-        item.thumbnails?.[item.thumbnails.length - 1]?.url ||
-        item.thumbnails?.[0]?.url;
+        (Array.isArray(item.thumbnails) && item.thumbnails.length > 0
+          ? item.thumbnails[item.thumbnails.length - 1]?.url || item.thumbnails[0]?.url
+          : '');
 
-      if (cover && cover.includes('googleusercontent.com')) {
-        cover = cover.replace(/=w\d+-h\d+.*$/, '=w600-h600-l90-rj');
+      if (cover && (cover.includes('googleusercontent.com') || cover.includes('ytimg.com') || cover.includes('ggpht.com'))) {
+        cover = cover.replace(/=w\d+-h\d+/, '=w300-h300');
       }
       if (!cover && videoId) {
         cover = `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
@@ -205,9 +209,11 @@ export const SearchView: React.FC = () => {
         title: item.title || item.name || 'Lagu',
         name: item.title || item.name || 'Lagu',
         artist: artistStr,
+        artists: artistStr,
         album: albumStr,
         duration: typeof item.duration === 'number' ? item.duration : 200,
         image: cover || (videoId ? `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg` : ''),
+        thumbnails: item.thumbnails || (cover ? [{ url: cover, width: 300, height: 300 }] : []),
         source: 'youtube',
       });
     }
@@ -233,23 +239,30 @@ export const SearchView: React.FC = () => {
 
     try {
       if (filterName === 'Semua') {
-        const [songRes, artistRes, albumRes, playlistRes] = await Promise.all([
-          fetch(`/api/search?q=${encodeURIComponent(q)}&type=song`).then((r) => (r.ok ? r.json() : [])).catch(() => []),
-          fetch(`/api/search?q=${encodeURIComponent(q)}&type=artist`).then((r) => (r.ok ? r.json() : [])).catch(() => []),
-          fetch(`/api/search?q=${encodeURIComponent(q)}&type=album`).then((r) => (r.ok ? r.json() : [])).catch(() => []),
-          fetch(`/api/search?q=${encodeURIComponent(q)}&type=playlist`).then((r) => (r.ok ? r.json() : [])).catch(() => []),
-        ]);
+        const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
+        const allItems = res.ok ? await res.json() : [];
 
-        const mappedSongs = mapSongItems(songRes);
+        const songItems = Array.isArray(allItems)
+          ? allItems.filter((i: any) => !i.type || i.type === 'SONG' || i.type === 'VIDEO')
+          : [];
+        const artistItems = Array.isArray(allItems)
+          ? allItems.filter((i: any) => i.type === 'ARTIST')
+          : [];
+        const albumItems = Array.isArray(allItems)
+          ? allItems.filter((i: any) => i.type === 'ALBUM')
+          : [];
+        const playlistItems = Array.isArray(allItems)
+          ? allItems.filter((i: any) => i.type === 'PLAYLIST')
+          : [];
+
+        const mappedSongs = mapSongItems(songItems);
         setResults(mappedSongs);
+        setArtistResults(artistItems);
+        setAlbumResults(albumItems);
+        setPlaylistResults(playlistItems);
 
-        const validArtists = Array.isArray(artistRes) ? artistRes : [];
-        setArtistResults(validArtists);
-        setAlbumResults(Array.isArray(albumRes) ? albumRes : []);
-        setPlaylistResults(Array.isArray(playlistRes) ? playlistRes : []);
-
-        if (validArtists.length > 0) {
-          const first = validArtists[0];
+        if (artistItems.length > 0) {
+          const first = artistItems[0];
           if (
             first.name &&
             (first.name.toLowerCase().includes(q.toLowerCase()) || q.toLowerCase().includes(first.name.toLowerCase()))
@@ -277,7 +290,7 @@ export const SearchView: React.FC = () => {
         setArtistResults([]);
         setPlaylistResults([]);
         setTopMatchedArtist(null);
-      } else if (filterName === 'Daftar putar') {
+      } else if (filterName === 'Daftar putar' || filterName === 'Playlist') {
         const res = await fetch(`/api/search?q=${encodeURIComponent(q)}&type=playlist`);
         const data = res.ok ? await res.json() : [];
         setPlaylistResults(Array.isArray(data) ? data : []);
@@ -562,7 +575,7 @@ export const SearchView: React.FC = () => {
                   }}
                 >
                   {/* Square Cover Art - full frame matching Beranda */}
-                  <div className="relative w-12 h-12 rounded-[18px] overflow-hidden shrink-0 bg-neutral-900 border border-white/10 shadow-md">
+                  <div className="relative w-12 h-12 rounded-xl overflow-hidden shrink-0 bg-neutral-900 border border-white/10 shadow-md">
                     <img
                       src={song.image || (song.videoId ? `https://i.ytimg.com/vi/${song.videoId}/hqdefault.jpg` : '')}
                       alt={song.title}
@@ -778,7 +791,7 @@ export const SearchView: React.FC = () => {
         {!isSearching && searchQuery && (activeFilter === 'Semua' || activeFilter === 'Daftar putar') && playlistResults.length > 0 && (
           <div className="space-y-3">
             <span className="text-xs font-bold uppercase tracking-wider text-white/40 px-1">
-              Daftar Putar ({playlistResults.length})
+              Playlist ({playlistResults.length})
             </span>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {(activeFilter === 'Semua' ? playlistResults.slice(0, 6) : playlistResults).map((pl, idx) => (

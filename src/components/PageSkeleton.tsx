@@ -86,23 +86,20 @@ export const PlaylistDetailSkeleton: React.FC<PlaylistSkeletonProps> = ({ onBack
   );
 };
 
-export const TrackRowsSkeleton: React.FC<{ count?: number }> = ({ count = 6 }) => {
+export const TrackRowsSkeleton: React.FC<{ count?: number }> = ({ count = 8 }) => {
   return (
-    <div className="space-y-1.5 animate-in fade-in duration-200">
-      {Array.from({ length: count }).map((_, i) => (
-        <div
-          key={i}
-          className="flex items-center gap-3 p-2.5 rounded-2xl bg-white/[0.04] border border-white/[0.03] animate-pulse"
-        >
-          <div className="w-12 h-12 rounded-[16px] bg-white/10 shrink-0" />
-          <div className="min-w-0 flex-1 space-y-2">
+    <div className="space-y-1 border-t border-white/10 pt-4 animate-pulse">
+      {Array.from({ length: count }).map((_, e) => (
+        <div key={e} className="flex items-center gap-4 py-2 px-2">
+          <div className="w-12 h-12 rounded-xl bg-white/10 shrink-0" />
+          <div className="flex-1 space-y-2">
             <div
               className="h-4 bg-white/15 rounded-md"
-              style={{ width: `${Math.min(90, 40 + (i * 15) % 50)}%` }}
+              style={{ width: `${Math.min(85, 45 + ((e * 17) % 45))}%` }}
             />
             <div className="h-3 w-32 bg-white/10 rounded-md" />
           </div>
-          <div className="w-7 h-7 rounded-full bg-white/10 shrink-0" />
+          <div className="w-5 h-5 bg-white/10 rounded-full shrink-0" />
         </div>
       ))}
     </div>

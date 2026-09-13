@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Music } from 'lucide-react';
 
 interface ImageWithSkeletonProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   src?: string;
@@ -13,36 +14,48 @@ export const ImageWithSkeleton: React.FC<ImageWithSkeletonProps> = ({
   alt = '',
   className = '',
   containerClassName = '',
-  fallbackSrc = 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400&auto=format&fit=crop&q=80',
+  fallbackSrc,
   onError,
   onLoad,
   ...props
 }) => {
-  const [imgSrc, setImgSrc] = useState(src || fallbackSrc);
+  const [imgSrc, setImgSrc] = useState(src || '');
+  const [hasError, setHasError] = useState(!src);
 
   useEffect(() => {
-    setImgSrc(src || fallbackSrc);
-  }, [src, fallbackSrc]);
+    setImgSrc(src || '');
+    setHasError(!src);
+  }, [src]);
 
   return (
-    <div className={`relative overflow-hidden bg-neutral-900 ${containerClassName || 'w-full h-full'}`}>
-      <img
-        {...props}
-        src={imgSrc}
-        alt={alt}
-        className={className}
-        onLoad={(e) => {
-          if (onLoad) onLoad(e);
-        }}
-        onError={(e) => {
-          if (imgSrc !== fallbackSrc) {
-            setImgSrc(fallbackSrc);
-          }
-          if (onError) onError(e);
-        }}
-        loading="lazy"
-        referrerPolicy="no-referrer"
-      />
+    <div className={`relative overflow-hidden bg-neutral-900 flex items-center justify-center ${containerClassName || 'w-full h-full'}`}>
+      {!hasError && imgSrc ? (
+        <img
+          {...props}
+          src={imgSrc}
+          alt={alt}
+          className={className}
+          onLoad={(e) => {
+            setHasError(false);
+            if (onLoad) onLoad(e);
+          }}
+          onError={(e) => {
+            if (fallbackSrc && imgSrc !== fallbackSrc) {
+              setImgSrc(fallbackSrc);
+            } else {
+              setHasError(true);
+            }
+            if (onError) onError(e);
+          }}
+          loading="lazy"
+          referrerPolicy="no-referrer"
+        />
+      ) : (
+        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-neutral-800 to-neutral-950 text-white/30">
+          <Music className="w-5 h-5 stroke-[1.75]" />
+        </div>
+      )}
     </div>
   );
 };
+

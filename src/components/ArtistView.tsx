@@ -74,7 +74,7 @@ export const ArtistView: React.FC = () => {
       artistData?.avatar ||
       artistData?.thumbnails?.[0]?.url ||
       selectedArtist?.image ||
-      'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300&auto=format&fit=crop&q=80';
+      '';
 
     toggleSubscribeArtist({
       name: artistName,
@@ -235,7 +235,7 @@ export const ArtistView: React.FC = () => {
     artistData?.thumbnails?.[artistData?.thumbnails.length - 1]?.url ||
     selectedArtist?.image ||
     topSongs[0]?.image ||
-    'https://yt3.googleusercontent.com/No3I8pA9ows2dy6NElEr9mCXLzYxgjVvsQr7h69C03palsH1u8Q8iw-sAAUxav599Wmi64up8lbDGbI=w500-h500-p-l90-rj';
+    '';
 
   const isArtistPlaying =
     isPlaying && topSongs.some((s) => s.videoId === currentSong?.videoId || s.id === currentSong?.id);

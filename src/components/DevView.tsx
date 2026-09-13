@@ -34,10 +34,6 @@ export const DevView: React.FC = () => {
                 src="/dev_avatar.jpg"
                 alt="Rei Shawnkys"
                 className="w-full h-full object-cover rounded-full"
-                onError={(e) => {
-                  // Fallback pixel art style alien avatar
-                  e.currentTarget.src = 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=400&auto=format&fit=crop&q=80';
-                }}
               />
             </div>
 

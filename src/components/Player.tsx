@@ -198,10 +198,9 @@ export const Player: React.FC = () => {
 
   return (
     <>
-      {/* Background YouTube Audio Engine (Offscreen, actual dimensions so browser & YouTube API allow continuous audio playback) */}
+      {/* Background YouTube Audio Engine (In-DOM 1px element to guarantee continuous audio playback when minimized/screen off) */}
       <div
-        className="fixed -left-[9999px] -top-[9999px] pointer-events-none"
-        style={{ width: '320px', height: '180px', opacity: 0.01 }}
+        className="fixed bottom-0 right-0 pointer-events-none w-[1px] h-[1px] opacity-[0.001] overflow-hidden z-[-1]"
         aria-hidden="true"
       >
         {currentSong.videoId && (
@@ -478,9 +477,9 @@ export const Player: React.FC = () => {
 
           {/* TAB 1: TRACK VIEW (Artwork, Scrub Bar, Controls) */}
           {activeTab === 'track' && (
-            <div className="flex-1 flex flex-col justify-center max-w-sm mx-auto w-full py-4 relative z-10">
-              {/* Square Artwork with 36px radius */}
-              <div className="relative aspect-square w-full rounded-[36px] overflow-hidden shadow-2xl bg-neutral-900 border border-white/10 mb-7">
+            <div className="flex-1 flex flex-col justify-between max-w-md mx-auto w-full pt-1 pb-4 relative z-10">
+              {/* Square Artwork with elevated position to eliminate upper gap */}
+              <div className="relative aspect-square w-full max-w-[340px] sm:max-w-[380px] mx-auto rounded-[32px] overflow-hidden shadow-2xl bg-neutral-900 border border-white/10 mt-1 mb-5">
                 <img
                   src={songImage}
                   alt={currentSong.title || currentSong.name}
@@ -489,7 +488,7 @@ export const Player: React.FC = () => {
               </div>
 
               {/* Title & Artist & Like */}
-              <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center justify-between mb-4 px-1">
                 <div className="min-w-0 flex-1 pr-4">
                   <h2 className="text-xl sm:text-2xl font-extrabold text-white truncate leading-tight">
                     {currentSong.title || currentSong.name}
@@ -520,7 +519,7 @@ export const Player: React.FC = () => {
               </div>
 
               {/* Timeline Slider with Clean White Trail & Thumb (No Neon) */}
-              <div className="mb-5">
+              <div className="mb-4 px-1">
                 <div className="relative w-full h-7 flex items-center group cursor-pointer select-none">
                   {/* Background Track */}
                   <div className="absolute left-0 right-0 h-1 bg-white/20 rounded-full overflow-hidden">

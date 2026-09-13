@@ -19,6 +19,7 @@ import {
 import { motion } from 'motion/react';
 import { useMusic } from '../context/MusicContext';
 import { Song } from '../types';
+import { PlaylistDetailSkeleton } from './PageSkeleton';
 
 export const TopIndonesiaView: React.FC = () => {
   const {
@@ -104,7 +105,16 @@ export const TopIndonesiaView: React.FC = () => {
 
   const bannerCover =
     topSongs[0]?.image ||
-    'https://i.ytimg.com/vi/NE41kVB0swQ/hqdefault.jpg';
+    (topSongs[0]?.videoId ? `https://i.ytimg.com/vi/${topSongs[0].videoId}/hqdefault.jpg` : '');
+
+  if (isLoading && topSongs.length === 0) {
+    return (
+      <PlaylistDetailSkeleton
+        onBack={() => setCurrentView('home')}
+        title="Top 50 Indonesia"
+      />
+    );
+  }
 
   return (
     <div id="top-indonesia-page" className="pb-36 min-h-screen bg-transparent text-white select-none">

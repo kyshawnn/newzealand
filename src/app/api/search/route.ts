@@ -236,7 +236,7 @@ export async function GET(req: NextRequest) {
                 item.thumbnail ||
                 item.thumbnails?.[item.thumbnails.length - 1]?.url ||
                 item.image ||
-                'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400',
+                '',
             }));
           } else if (type === 'artist') {
             results = data.map((item: any) => ({
@@ -247,7 +247,7 @@ export async function GET(req: NextRequest) {
                 item.thumbnail ||
                 item.thumbnails?.[item.thumbnails.length - 1]?.url ||
                 item.image ||
-                'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300',
+                '',
               subscribers: cleanString(item.subscribers, 'Artis Populer'),
             }));
           } else if (type === 'playlist') {
@@ -260,7 +260,7 @@ export async function GET(req: NextRequest) {
                 item.thumbnail ||
                 item.thumbnails?.[item.thumbnails.length - 1]?.url ||
                 item.image ||
-                'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400',
+                '',
             }));
           } else {
             results = data;
@@ -307,7 +307,7 @@ export async function GET(req: NextRequest) {
             playlistId: 'pl_' + encodeURIComponent(query),
             name: `${query} Mix`,
             trackCount: `${fallbackSongs.length} lagu`,
-            thumbnail: fallbackSongs[0]?.image || 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500',
+            thumbnail: fallbackSongs[0]?.image || '',
             songs: fallbackSongs,
           },
         ];

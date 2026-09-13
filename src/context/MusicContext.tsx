@@ -188,20 +188,7 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try {
       const saved = localStorage.getItem(SUBS_KEY);
       if (!saved) {
-        return [
-          {
-            name: 'Tulus',
-            artistId: 'UCe5j7n2L49g5r4zYk8w1_1Q',
-            image: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300&auto=format&fit=crop&q=80',
-            subscribers: '4.8M',
-          },
-          {
-            name: 'Hindia',
-            artistId: 'UC6y5e7N9_1h8a9x7k2b3c4d',
-            image: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=300&auto=format&fit=crop&q=80',
-            subscribers: '2.1M',
-          },
-        ];
+        return [];
       }
       const parsed = JSON.parse(saved);
       if (Array.isArray(parsed)) {
@@ -209,7 +196,7 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           if (typeof item === 'string') {
             return {
               name: item,
-              image: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300&auto=format&fit=crop&q=80',
+              image: '',
             };
           }
           return item;
@@ -256,9 +243,7 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         const newEntry: ArtistInfo = {
           name: artist.name,
           artistId: artist.artistId,
-          image:
-            artist.image ||
-            'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300&auto=format&fit=crop&q=80',
+          image: artist.image || '',
           subscribers: artist.subscribers || 'Artis',
           description: artist.description,
         };

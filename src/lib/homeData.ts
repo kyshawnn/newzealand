@@ -258,7 +258,7 @@ export const homeSectionsData = {
           artist: 'Zen Relaxing',
           album: 'Peaceful Mind',
           duration: 300,
-          image: 'https://images.unsplash.com/photo-1518609878373-06d740f60d8b?w=400&auto=format&fit=crop&q=80',
+          image: 'https://i.ytimg.com/vi/1ZYbU87028U/hqdefault.jpg',
           source: 'youtube'
         },
         {
@@ -268,7 +268,7 @@ export const homeSectionsData = {
           artist: 'Jaymes Young',
           album: 'Feel Something',
           duration: 237,
-          image: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400&auto=format&fit=crop&q=80',
+          image: 'https://i.ytimg.com/vi/pw-9qB3V7rA/hqdefault.jpg',
           source: 'youtube'
         },
         {
@@ -348,7 +348,7 @@ export const homeSectionsData = {
           artist: 'Ghea Indrawari',
           album: 'Single',
           duration: 278,
-          image: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400&auto=format&fit=crop&q=80',
+          image: 'https://i.ytimg.com/vi/1qP3p1N5wF8/hqdefault.jpg',
           source: 'youtube'
         }
       ],
@@ -360,7 +360,7 @@ export const homeSectionsData = {
           artist: 'JJ GASPOL',
           album: 'DJ Jedag Jedug',
           duration: 214,
-          image: 'https://images.unsplash.com/photo-1571266028243-e4733b0f0bb1?w=400&auto=format&fit=crop&q=80',
+          image: 'https://i.ytimg.com/vi/9ZR4G6CqqQA/hqdefault.jpg',
           source: 'youtube'
         },
         {
@@ -370,7 +370,7 @@ export const homeSectionsData = {
           artist: 'Goyang Buncit',
           album: 'Bass Boosted',
           duration: 205,
-          image: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400&auto=format&fit=crop&q=80',
+          image: 'https://i.ytimg.com/vi/9ZR4G6CqqQA/hqdefault.jpg',
           source: 'youtube'
         },
         {
@@ -380,7 +380,7 @@ export const homeSectionsData = {
           artist: 'Evolusi Music',
           album: 'TikTok DJ',
           duration: 198,
-          image: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=400&auto=format&fit=crop&q=80',
+          image: 'https://i.ytimg.com/vi/k3-FWnkfi9U/hqdefault.jpg',
           source: 'youtube'
         },
         {
@@ -410,7 +410,7 @@ export const homeSectionsData = {
           artist: 'DJ Opus',
           album: 'Santuy Mengkane',
           duration: 240,
-          image: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400&auto=format&fit=crop&q=80',
+          image: 'https://i.ytimg.com/vi/9ZR4G6CqqQA/hqdefault.jpg',
           source: 'youtube'
         }
       ],
@@ -422,7 +422,7 @@ export const homeSectionsData = {
           artist: 'Letto',
           album: 'Truth, Cry, and Lie',
           duration: 211,
-          image: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400&auto=format&fit=crop&q=80',
+          image: 'https://i.ytimg.com/vi/5QMsYmJYUlQ/hqdefault.jpg',
           source: 'youtube'
         },
         {
@@ -432,7 +432,7 @@ export const homeSectionsData = {
           artist: 'Dian Piesesha',
           album: 'Nostalgia Emas',
           duration: 260,
-          image: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&auto=format&fit=crop&q=80',
+          image: 'https://i.ytimg.com/vi/5QMsYmJYUlQ/hqdefault.jpg',
           source: 'youtube'
         },
         {
@@ -462,7 +462,7 @@ export const homeSectionsData = {
           artist: 'Sheila On 7',
           album: 'Kisah Klasik Untuk Masa Depan',
           duration: 295,
-          image: 'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=400&auto=format&fit=crop&q=80',
+          image: 'https://i.ytimg.com/vi/5QMsYmJYUlQ/hqdefault.jpg',
           source: 'youtube'
         },
         {

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { ChevronLeft, Play, MoreVertical, Sparkles, Loader2, Music, ListPlus, PlusCircle } from 'lucide-react';
 import { useMusic } from '../context/MusicContext';
 import { Song } from '../types';
+import { ImageWithSkeleton } from './ImageWithSkeleton';
 
 const GENRE_LIST = [
   'Focus',
@@ -95,19 +96,10 @@ export const GenreView: React.FC = () => {
         className="w-[140px] sm:w-[155px] shrink-0 group flex flex-col cursor-pointer"
       >
         <div className="relative w-[140px] sm:w-[155px] h-[140px] sm:h-[155px] rounded-2xl overflow-hidden mb-2 bg-[#1C1C1E] border border-white/5 group-hover:border-white/20 transition-all shadow-md">
-          <img
-            src={
-              song.image ||
-              'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=300&auto=format&fit=crop&q=80'
-            }
+          <ImageWithSkeleton
+            src={song.image}
             alt={song.title}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-            loading="lazy"
-            referrerPolicy="no-referrer"
-            onError={(e) => {
-              e.currentTarget.src =
-                'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=300&auto=format&fit=crop&q=80';
-            }}
           />
 
           {/* Play status overlay */}

@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { useMusic } from '../context/MusicContext';
 import { Song, Playlist } from '../types';
+import { PlaylistDetailSkeleton } from './PageSkeleton';
 
 function formatDuration(sec: number): string {
   if (!sec || isNaN(sec)) return '3:20';
@@ -48,6 +49,7 @@ export const PlaylistView: React.FC = () => {
 
   const [playlist, setPlaylist] = useState<Playlist | null>(null);
   const [songs, setSongs] = useState<Song[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [activeMenuSongId, setActiveMenuSongId] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -63,10 +65,12 @@ export const PlaylistView: React.FC = () => {
 
     if (selectedPlaylistData && selectedPlaylistData.id === activePlaylistId) {
       setPlaylist(selectedPlaylistData);
-      setSongs(selectedPlaylistData.songs || []);
+      const initialTracks = selectedPlaylistData.songs || [];
+      setSongs(initialTracks);
 
       // If it's a community playlist or only has a preview (fewer than 20 songs), fetch the full 50-100 songs from scraper
-      if (!isUserPlaylist && (!selectedPlaylistData.songs || selectedPlaylistData.songs.length < 20)) {
+      if (!isUserPlaylist && initialTracks.length < 20) {
+        setIsLoading(true);
         fetch(`/api/community-playlist-songs?id=${encodeURIComponent(selectedPlaylistData.id)}&title=${encodeURIComponent(selectedPlaylistData.name || '')}`)
           .then((r) => (r.ok ? r.json() : []))
           .then((fullTracks) => {
@@ -75,7 +79,10 @@ export const PlaylistView: React.FC = () => {
               setPlaylist((prev) => (prev ? { ...prev, songs: fullTracks } : prev));
             }
           })
-          .catch((err) => console.error('Error fetching full playlist tracks:', err));
+          .catch((err) => console.error('Error fetching full playlist tracks:', err))
+          .finally(() => setIsLoading(false));
+      } else {
+        setIsLoading(false);
       }
       return;
     }
@@ -86,7 +93,9 @@ export const PlaylistView: React.FC = () => {
         setPlaylist(found);
         setSongs(found.songs || []);
       }
+      setIsLoading(false);
     } else {
+      setIsLoading(true);
       // Fetch full songs for this playlist ID
       fetch(`/api/community-playlist-songs?id=${encodeURIComponent(activePlaylistId)}`)
         .then((r) => (r.ok ? r.json() : []))
@@ -95,7 +104,8 @@ export const PlaylistView: React.FC = () => {
             setSongs(fullTracks);
           }
         })
-        .catch((err) => console.error('Error fetching full tracks:', err));
+        .catch((err) => console.error('Error fetching full tracks:', err))
+        .finally(() => setIsLoading(false));
     }
   }, [activePlaylistId, playlists, selectedPlaylistData, isUserPlaylist]);
 
@@ -145,6 +155,15 @@ export const PlaylistView: React.FC = () => {
       : '';
 
   const bannerCover = firstSongCover || validCustomCover || '';
+
+  if (isLoading && songs.length === 0) {
+    return (
+      <PlaylistDetailSkeleton
+        onBack={() => setCurrentView('home')}
+        title={playlist?.name || selectedPlaylistData?.name || 'Playlist'}
+      />
+    );
+  }
 
   return (
     <div id="playlist-page" className="pb-36 min-h-screen bg-transparent text-white select-none relative">
@@ -334,9 +353,6 @@ export const PlaylistView: React.FC = () => {
                         const target = e.currentTarget;
                         if (song.videoId && !target.src.includes('ytimg.com/vi/')) {
                           target.src = `https://i.ytimg.com/vi/${song.videoId}/hqdefault.jpg`;
-                        } else {
-                          target.src =
-                            'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300&auto=format&fit=crop&q=80';
                         }
                       }}
                     />

@@ -220,10 +220,10 @@ export const HomeView: React.FC = () => {
     return (
       <motion.div
         key={`${keyPrefix || 'track'}-${song.id || song.videoId || 's'}-${index ?? 0}`}
-        initial={{ opacity: 0, y: 12 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: '-10px' }}
-        transition={{ duration: 0.22, delay: Math.min((index ?? 0) * 0.03, 0.2) }}
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.2 }}
         onClick={() => playSong(song, contextQueue)}
         className="w-[140px] sm:w-[155px] shrink-0 group flex flex-col cursor-pointer"
       >
@@ -288,10 +288,10 @@ export const HomeView: React.FC = () => {
         {columns.map((col, colIdx) => (
           <motion.div
             key={colIdx}
-            initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-20px' }}
-            transition={{ duration: 0.22, delay: Math.min(colIdx * 0.04, 0.2) }}
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.2 }}
             className="w-[280px] sm:w-[320px] shrink-0 flex flex-col gap-2.5"
           >
             {col.map((song, songIdx) => {
@@ -487,10 +487,10 @@ export const HomeView: React.FC = () => {
                 return (
                   <motion.div
                     key={itemKey}
-                    initial={{ opacity: 0, y: 14 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, margin: '-15px' }}
-                    transition={{ duration: 0.24, delay: Math.min(idx * 0.03, 0.25) }}
+                    initial={{ opacity: 0 }}
+                    whileInView={{ opacity: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.2 }}
                     onClick={() => playSong(song, quickPicks)}
                     className={`flex items-center justify-between p-2.5 rounded-[24px] transition-all cursor-pointer group ${
                       isCurrent
@@ -501,14 +501,16 @@ export const HomeView: React.FC = () => {
                     <div className="flex items-center gap-3.5 min-w-0 flex-1 pl-1">
                       <div className="relative w-12 h-12 rounded-[18px] overflow-hidden bg-neutral-900 shrink-0 shadow-md">
                         <img
-                          src={song.image || 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=300&auto=format&fit=crop&q=80'}
+                          src={
+                            song.image ||
+                            (song.videoId
+                              ? `https://i.ytimg.com/vi/${song.videoId}/hqdefault.jpg`
+                              : '')
+                          }
                           alt={song.title}
                           className="w-full h-full object-cover"
                           loading="lazy"
                           referrerPolicy="no-referrer"
-                          onError={(e) => {
-                            e.currentTarget.src = 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=300&auto=format&fit=crop&q=80';
-                          }}
                         />
                         {isCurrent && (
                           <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
@@ -616,14 +618,14 @@ export const HomeView: React.FC = () => {
               {(sectionsData.communityPlaylists || []).map((playlist, pIdx) => {
                 const covers = (playlist.covers || playlist.gridCovers || []).slice(0, 4);
                 const playlistTracks = playlist.tracks || playlist.songs || [];
-                const firstCover = covers[0] || (playlistTracks[0]?.image) || 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400&auto=format&fit=crop&q=80';
+                const firstCover = covers[0] || playlistTracks[0]?.image || '';
                 return (
                   <motion.div
                     key={`${playlist.id || 'pl'}-${pIdx}`}
-                    initial={{ opacity: 0, y: 10 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, margin: '-20px' }}
-                    transition={{ duration: 0.22, delay: Math.min(pIdx * 0.03, 0.2) }}
+                    initial={{ opacity: 0 }}
+                    whileInView={{ opacity: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.2 }}
                     onClick={() => handleOpenCommunityPlaylist(playlist)}
                     className="w-[140px] sm:w-[155px] shrink-0 group flex flex-col cursor-pointer"
                   >
@@ -694,10 +696,10 @@ export const HomeView: React.FC = () => {
               {(sectionsData.listeningArtists || []).map((artist, aIdx) => (
                 <motion.div
                   key={`${artist.artistId || artist.name || 'art'}-${aIdx}`}
-                  initial={{ opacity: 0, y: 10 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: '-20px' }}
-                  transition={{ duration: 0.22, delay: Math.min(aIdx * 0.03, 0.2) }}
+                  initial={{ opacity: 0 }}
+                  whileInView={{ opacity: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.2 }}
                   onClick={() =>
                     openArtist({
                       name: artist.name,

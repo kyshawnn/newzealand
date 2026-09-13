@@ -91,7 +91,7 @@ export const LikedSongsView: React.FC = () => {
 
   const heroBackdrop =
     likedSongs[0]?.image ||
-    'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=1200&auto=format&fit=crop&q=80';
+    (likedSongs[0]?.videoId ? `https://i.ytimg.com/vi/${likedSongs[0].videoId}/hqdefault.jpg` : '');
 
   return (
     <div id="liked-songs-page" className="pb-36 min-h-screen bg-transparent text-white select-none">
@@ -105,12 +105,18 @@ export const LikedSongsView: React.FC = () => {
 
       {/* 1. Immersive Hero Banner matching ArtistView Style */}
       <div className="relative w-full h-[370px] sm:h-[430px] overflow-hidden bg-gradient-to-b from-rose-950/40 via-neutral-900 to-[#111113]">
-        <img
-          src={heroBackdrop}
-          alt="Lagu yang Disukai"
-          className="w-full h-full object-cover object-center filter saturate-125 brightness-90"
-          referrerPolicy="no-referrer"
-        />
+        {heroBackdrop ? (
+          <img
+            src={heroBackdrop}
+            alt="Lagu yang Disukai"
+            className="w-full h-full object-cover object-center filter saturate-125 brightness-90"
+            referrerPolicy="no-referrer"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-rose-900/30 to-black/80">
+            <Heart className="w-20 h-20 text-rose-500/20 fill-current" />
+          </div>
+        )}
 
         {/* Soft Dark Rose & Black Vignette Gradient */}
         <div className="absolute inset-0 bg-gradient-to-t from-[#111113] via-[#111113]/65 to-black/40" />

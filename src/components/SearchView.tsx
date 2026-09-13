@@ -13,18 +13,17 @@ import {
   ListPlus,
   User,
   Check,
-  Loader2,
   ExternalLink,
   History,
   Trash2,
   ArrowUpRight,
-  ChevronDown,
 } from 'lucide-react';
 import { useMusic } from '../context/MusicContext';
 import { Song } from '../types';
 import { ImageWithSkeleton } from './ImageWithSkeleton';
+import { TrackRowsSkeleton } from './PageSkeleton';
 
-const DEFAULT_COVER = 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400&auto=format&fit=crop&q=80';
+const DEFAULT_COVER = '';
 
 const SEARCH_FILTERS = ['Semua', 'Lagu', 'Video', 'Album', 'Artis', 'Daftar putar'];
 
@@ -208,7 +207,7 @@ export const SearchView: React.FC = () => {
         artist: artistStr,
         album: albumStr,
         duration: typeof item.duration === 'number' ? item.duration : 200,
-        image: cover || DEFAULT_COVER,
+        image: cover || (videoId ? `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg` : ''),
         source: 'youtube',
       });
     }
@@ -359,8 +358,8 @@ export const SearchView: React.FC = () => {
         </div>
       )}
 
-      {/* Top Search Header - Lightweight Clean Translucent */}
-      <div className="sticky top-0 z-30 px-4 pt-3 pb-2 bg-black/40 backdrop-blur-md border-b border-white/10 space-y-3 shadow-sm">
+      {/* Top Search Header - Static without background container, matches Beranda */}
+      <div className="relative z-30 px-4 pt-4 pb-2 bg-transparent space-y-3">
         <div className="flex items-center gap-3">
           <button
             onClick={() => setCurrentView('home')}
@@ -503,7 +502,7 @@ export const SearchView: React.FC = () => {
                     <div
                       key={`${item}_${idx}`}
                       onClick={() => handleSelectKeyword(item)}
-                      className="flex items-center justify-between p-3 rounded-2xl bg-[#1C1C1E] hover:bg-[#26262A] border border-white/5 text-xs text-white/90 hover:text-white transition-all cursor-pointer group"
+                      className="flex items-center justify-between p-3 rounded-2xl bg-white/[0.06] hover:bg-white/[0.12] border border-white/10 text-xs text-white/90 hover:text-white transition-all cursor-pointer group shadow-sm"
                     >
                       <div className="flex items-center gap-3 min-w-0">
                         <History className="w-4 h-4 text-white/30 group-hover:text-white/60 shrink-0" />
@@ -529,11 +528,10 @@ export const SearchView: React.FC = () => {
           </div>
         )}
 
-        {/* Loading Spinner */}
+        {/* Loading Skeleton */}
         {isSearching && (
-          <div className="py-20 flex flex-col items-center justify-center text-white/40 space-y-3">
-            <Loader2 className="w-8 h-8 animate-spin text-white/70" />
-            <span className="text-xs text-white/40">Mencari...</span>
+          <div className="py-2">
+            <TrackRowsSkeleton count={8} />
           </div>
         )}
 
@@ -543,7 +541,7 @@ export const SearchView: React.FC = () => {
             <span className="text-xs font-bold uppercase tracking-wider text-white/40 px-1 block mb-2">
               {activeFilter === 'Video' ? 'Video Musik' : 'Lagu'} ({results.length})
             </span>
-            {(activeFilter === 'Semua' ? (showAllSongsInAllTab ? results : results.slice(0, 15)) : results).map((song, idx) => {
+            {results.map((song, idx) => {
               const isCurrent =
                 currentSong?.videoId === song.videoId || currentSong?.id === song.id;
               const isSongPlaying = isCurrent && isPlaying;
@@ -552,8 +550,8 @@ export const SearchView: React.FC = () => {
               return (
                 <div
                   key={`${song.id || song.videoId || 's'}_${idx}`}
-                  className={`group relative flex items-center gap-3 p-2.5 rounded-2xl transition-colors cursor-pointer border border-transparent hover:border-white/5 ${
-                    isCurrent ? 'bg-white/10' : 'hover:bg-white/5'
+                  className={`group relative flex items-center gap-3 p-2.5 rounded-2xl transition-colors cursor-pointer border border-transparent hover:border-white/10 ${
+                    isCurrent ? 'bg-white/10' : 'hover:bg-white/[0.06]'
                   }`}
                   onClick={() => {
                     if (isCurrent) {
@@ -563,10 +561,10 @@ export const SearchView: React.FC = () => {
                     }
                   }}
                 >
-                  {/* Square Cover Art */}
-                  <div className="relative w-12 h-12 rounded-xl overflow-hidden shrink-0 bg-white/5 shadow-md">
+                  {/* Square Cover Art - full frame */}
+                  <div className="relative w-12 h-12 rounded-xl overflow-hidden shrink-0 bg-neutral-900 border border-white/10 shadow-md">
                     <ImageWithSkeleton
-                      src={song.image}
+                      src={song.image || (song.videoId ? `https://i.ytimg.com/vi/${song.videoId}/hqdefault.jpg` : '')}
                       alt={song.title}
                       className="w-full h-full object-cover"
                     />
@@ -682,16 +680,6 @@ export const SearchView: React.FC = () => {
                 </div>
               );
             })}
-
-            {activeFilter === 'Semua' && results.length > 15 && !showAllSongsInAllTab && (
-              <button
-                onClick={() => setShowAllSongsInAllTab(true)}
-                className="w-full py-3 mt-2 rounded-2xl bg-white/5 hover:bg-white/10 active:scale-[0.99] text-white/80 hover:text-white text-xs font-semibold border border-white/10 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm"
-              >
-                <span>Tampilkan Seluruh {results.length} Lagu Terkait</span>
-                <ChevronDown className="w-4 h-4" />
-              </button>
-            )}
           </div>
         )}
 
@@ -713,7 +701,7 @@ export const SearchView: React.FC = () => {
                       art.thumbnails?.[art.thumbnails.length - 1]?.url,
                   })
                 }
-                className="flex items-center justify-between p-3.5 rounded-[24px] bg-[#1C1C1E] hover:bg-[#26262A] transition-all cursor-pointer border border-white/5 shadow-md group"
+                className="flex items-center justify-between p-3.5 rounded-[24px] bg-white/[0.06] hover:bg-white/[0.12] transition-all cursor-pointer border border-white/10 shadow-sm group"
               >
                 <div className="flex items-center gap-3.5 min-w-0">
                   <div className="w-14 h-14 rounded-full overflow-hidden shrink-0 border border-white/10 bg-neutral-900 shadow-sm">
@@ -757,7 +745,7 @@ export const SearchView: React.FC = () => {
                       openArtist({ name: alb.artist });
                     }
                   }}
-                  className="bg-[#1C1C1E] border border-white/5 rounded-[28px] p-3 hover:bg-[#26262A] transition-all cursor-pointer group shadow-lg"
+                  className="bg-white/[0.06] border border-white/10 rounded-[28px] p-3 hover:bg-white/[0.12] transition-all cursor-pointer group shadow-sm"
                 >
                   <div className="aspect-square rounded-[22px] overflow-hidden bg-black/40 mb-2.5 shadow-md relative">
                     <ImageWithSkeleton
@@ -788,7 +776,7 @@ export const SearchView: React.FC = () => {
               {(activeFilter === 'Semua' ? playlistResults.slice(0, 6) : playlistResults).map((pl, idx) => (
                 <div
                   key={`${pl.playlistId || 'pl'}_${idx}`}
-                  className="bg-[#1C1C1E] border border-white/5 rounded-[28px] p-3 hover:bg-[#26262A] transition-all cursor-pointer group shadow-lg"
+                  className="bg-white/[0.06] border border-white/10 rounded-[28px] p-3 hover:bg-white/[0.12] transition-all cursor-pointer group shadow-sm"
                 >
                   <div className="aspect-square rounded-[22px] overflow-hidden bg-black/40 mb-2.5 shadow-md relative">
                     <ImageWithSkeleton

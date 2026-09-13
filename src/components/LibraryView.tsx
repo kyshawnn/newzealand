@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   Heart,
   History,
@@ -7,16 +7,14 @@ import {
   Trash2,
   Play,
   ListPlus,
-  ChevronRight,
   TrendingUp,
   Download,
   Upload,
-  Users,
-  Sparkles,
   User,
 } from 'lucide-react';
 import { useMusic } from '../context/MusicContext';
 import { Song } from '../types';
+import { ImageWithSkeleton } from './ImageWithSkeleton';
 
 export const LibraryView: React.FC<{ onOpenCreatePlaylist: () => void }> = ({
   onOpenCreatePlaylist,
@@ -26,7 +24,6 @@ export const LibraryView: React.FC<{ onOpenCreatePlaylist: () => void }> = ({
     playlists,
     recentlyPlayed,
     downloadedSongs,
-    openArtist,
     setCurrentView,
     setActivePlaylistId,
     setIsHistoryOpen,
@@ -56,7 +53,7 @@ export const LibraryView: React.FC<{ onOpenCreatePlaylist: () => void }> = ({
       artist: 'File Lokal',
       album: 'Diunggah',
       duration: 180,
-      image: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300&auto=format&fit=crop&q=80',
+      image: '',
       audioUrl: url,
       source: 'local',
     };
@@ -76,7 +73,7 @@ export const LibraryView: React.FC<{ onOpenCreatePlaylist: () => void }> = ({
       />
 
       {/* Top Header */}
-      <div className="sticky top-0 z-30 px-5 pt-4 pb-3 bg-black/40 backdrop-blur-md border-b border-white/5 flex items-center justify-between">
+      <div className="relative z-30 px-5 pt-4 pb-3 bg-transparent flex items-center justify-between">
         <h1 className="text-2xl font-black tracking-tight text-white">
           Pustaka
         </h1>
@@ -84,14 +81,14 @@ export const LibraryView: React.FC<{ onOpenCreatePlaylist: () => void }> = ({
         <div className="flex items-center gap-2">
           <button
             onClick={() => setIsHistoryOpen(true)}
-            className="p-2.5 rounded-full bg-white/5 hover:bg-white/10 active:scale-95 transition-all text-white/70 hover:text-white cursor-pointer"
+            className="p-2.5 rounded-full bg-white/[0.08] hover:bg-white/[0.16] border border-white/10 active:scale-95 transition-all text-white/80 hover:text-white cursor-pointer shadow-sm"
             title="Riwayat Pemutaran"
           >
             <History className="w-4 h-4" />
           </button>
           <button
             onClick={() => setCurrentView('developer')}
-            className="p-2.5 rounded-full bg-white/5 hover:bg-white/10 active:scale-95 transition-all text-white/70 hover:text-white cursor-pointer"
+            className="p-2.5 rounded-full bg-white/[0.08] hover:bg-white/[0.16] border border-white/10 active:scale-95 transition-all text-white/80 hover:text-white cursor-pointer shadow-sm"
             title="Profil / About"
           >
             <User className="w-4 h-4" />
@@ -116,7 +113,7 @@ export const LibraryView: React.FC<{ onOpenCreatePlaylist: () => void }> = ({
               className={`px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer border ${
                 activeFilter === tab
                   ? 'bg-white text-black border-white shadow-md'
-                  : 'bg-[#18181A] text-white/70 border-white/10 hover:bg-white/10 hover:text-white'
+                  : 'bg-white/[0.06] backdrop-blur-xl text-white/75 border-white/10 hover:bg-white/[0.14] hover:text-white'
               }`}
             >
               {tab}
@@ -124,7 +121,7 @@ export const LibraryView: React.FC<{ onOpenCreatePlaylist: () => void }> = ({
           ))}
         </div>
 
-        {/* TOP LIBRARY NAVIGATION CARDS (Gray Palette) */}
+        {/* TOP LIBRARY NAVIGATION CARDS - Transparent like Beranda quick picks */}
         {(activeFilter === 'Semua' || activeFilter === 'Suka' || activeFilter === 'Unduhan') && (
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {/* 1. Disukai */}
@@ -133,9 +130,9 @@ export const LibraryView: React.FC<{ onOpenCreatePlaylist: () => void }> = ({
                 setActivePlaylistId(null);
                 setCurrentView('liked');
               }}
-              className="p-3.5 rounded-2xl bg-[#18181A] hover:bg-[#202024] border border-white/5 hover:border-white/20 transition-all cursor-pointer group shadow-md flex items-center gap-3"
+              className="p-3.5 rounded-2xl bg-white/[0.06] hover:bg-white/[0.12] border border-white/10 hover:border-white/20 transition-all cursor-pointer group shadow-sm flex items-center gap-3"
             >
-              <div className="w-11 h-11 rounded-xl bg-white/10 border border-white/10 flex items-center justify-center text-white/70 shrink-0 group-hover:scale-105 group-hover:text-white transition-all">
+              <div className="w-11 h-11 rounded-xl bg-white/[0.08] border border-white/10 flex items-center justify-center text-white/80 shrink-0 group-hover:scale-105 group-hover:text-white transition-all">
                 <Heart className="w-5 h-5 fill-current" />
               </div>
               <div className="min-w-0">
@@ -154,9 +151,9 @@ export const LibraryView: React.FC<{ onOpenCreatePlaylist: () => void }> = ({
                 setActivePlaylistId(null);
                 setCurrentView('downloaded');
               }}
-              className="p-3.5 rounded-2xl bg-[#18181A] hover:bg-[#202024] border border-white/5 hover:border-white/20 transition-all cursor-pointer group shadow-md flex items-center gap-3"
+              className="p-3.5 rounded-2xl bg-white/[0.06] hover:bg-white/[0.12] border border-white/10 hover:border-white/20 transition-all cursor-pointer group shadow-sm flex items-center gap-3"
             >
-              <div className="w-11 h-11 rounded-xl bg-white/10 border border-white/10 flex items-center justify-center text-white/70 shrink-0 group-hover:scale-105 group-hover:text-white transition-all">
+              <div className="w-11 h-11 rounded-xl bg-white/[0.08] border border-white/10 flex items-center justify-center text-white/80 shrink-0 group-hover:scale-105 group-hover:text-white transition-all">
                 <Download className="w-5 h-5" />
               </div>
               <div className="min-w-0">
@@ -175,9 +172,9 @@ export const LibraryView: React.FC<{ onOpenCreatePlaylist: () => void }> = ({
                 setActivePlaylistId(null);
                 setCurrentView('top');
               }}
-              className="p-3.5 rounded-2xl bg-[#18181A] hover:bg-[#202024] border border-white/5 hover:border-white/20 transition-all cursor-pointer group shadow-md flex items-center gap-3"
+              className="p-3.5 rounded-2xl bg-white/[0.06] hover:bg-white/[0.12] border border-white/10 hover:border-white/20 transition-all cursor-pointer group shadow-sm flex items-center gap-3"
             >
-              <div className="w-11 h-11 rounded-xl bg-white/10 border border-white/10 flex items-center justify-center text-white/70 shrink-0 group-hover:scale-105 group-hover:text-white transition-all">
+              <div className="w-11 h-11 rounded-xl bg-white/[0.08] border border-white/10 flex items-center justify-center text-white/80 shrink-0 group-hover:scale-105 group-hover:text-white transition-all">
                 <TrendingUp className="w-5 h-5" />
               </div>
               <div className="min-w-0">
@@ -193,9 +190,9 @@ export const LibraryView: React.FC<{ onOpenCreatePlaylist: () => void }> = ({
             {/* 4. Riwayat Pemutaran */}
             <div
               onClick={() => setIsHistoryOpen(true)}
-              className="p-3.5 rounded-2xl bg-[#18181A] hover:bg-[#202024] border border-white/5 hover:border-white/20 transition-all cursor-pointer group shadow-md flex items-center gap-3"
+              className="p-3.5 rounded-2xl bg-white/[0.06] hover:bg-white/[0.12] border border-white/10 hover:border-white/20 transition-all cursor-pointer group shadow-sm flex items-center gap-3"
             >
-              <div className="w-11 h-11 rounded-xl bg-white/10 border border-white/10 flex items-center justify-center text-white/70 shrink-0 group-hover:scale-105 group-hover:text-white transition-all">
+              <div className="w-11 h-11 rounded-xl bg-white/[0.08] border border-white/10 flex items-center justify-center text-white/80 shrink-0 group-hover:scale-105 group-hover:text-white transition-all">
                 <History className="w-5 h-5" />
               </div>
               <div className="min-w-0">
@@ -211,9 +208,9 @@ export const LibraryView: React.FC<{ onOpenCreatePlaylist: () => void }> = ({
             {/* 5. Diunggah (Lokal) */}
             <div
               onClick={() => fileInputRef.current?.click()}
-              className="p-3.5 rounded-2xl bg-[#18181A] hover:bg-[#202024] border border-white/5 hover:border-white/20 transition-all cursor-pointer group shadow-md flex items-center gap-3"
+              className="p-3.5 rounded-2xl bg-white/[0.06] hover:bg-white/[0.12] border border-white/10 hover:border-white/20 transition-all cursor-pointer group shadow-sm flex items-center gap-3"
             >
-              <div className="w-11 h-11 rounded-xl bg-white/10 border border-white/10 flex items-center justify-center text-white/70 shrink-0 group-hover:scale-105 group-hover:text-white transition-all">
+              <div className="w-11 h-11 rounded-xl bg-white/[0.08] border border-white/10 flex items-center justify-center text-white/80 shrink-0 group-hover:scale-105 group-hover:text-white transition-all">
                 <Upload className="w-5 h-5" />
               </div>
               <div className="min-w-0">
@@ -229,9 +226,9 @@ export const LibraryView: React.FC<{ onOpenCreatePlaylist: () => void }> = ({
             {/* 6. Buat playlist baru */}
             <div
               onClick={onOpenCreatePlaylist}
-              className="p-3.5 rounded-2xl bg-[#18181A] hover:bg-[#202024] border border-dashed border-white/20 hover:border-white/40 transition-all cursor-pointer group shadow-md flex items-center gap-3"
+              className="p-3.5 rounded-2xl bg-white/[0.06] hover:bg-white/[0.12] border border-dashed border-white/20 hover:border-white/40 transition-all cursor-pointer group shadow-sm flex items-center gap-3"
             >
-              <div className="w-11 h-11 rounded-xl bg-white/10 flex items-center justify-center text-white shrink-0 group-hover:scale-105 transition-transform">
+              <div className="w-11 h-11 rounded-xl bg-white/[0.08] flex items-center justify-center text-white shrink-0 group-hover:scale-105 transition-transform">
                 <Plus className="w-5 h-5 stroke-[2.5]" />
               </div>
               <div className="min-w-0">
@@ -295,12 +292,12 @@ export const LibraryView: React.FC<{ onOpenCreatePlaylist: () => void }> = ({
                     <div
                       key={`${playlist.id}_${pIdx}`}
                       onClick={() => handleOpenPlaylist(playlist.id)}
-                      className="flex items-center justify-between p-3 rounded-2xl bg-[#18181A] hover:bg-[#202024] border border-white/5 transition-all cursor-pointer group"
+                      className="flex items-center justify-between p-3 rounded-2xl bg-white/[0.06] hover:bg-white/[0.12] border border-white/10 transition-all cursor-pointer group shadow-sm"
                     >
                       <div className="flex items-center gap-3.5 min-w-0 flex-1">
-                        <div className="w-12 h-12 rounded-xl bg-neutral-800 overflow-hidden border border-white/10 shrink-0 flex items-center justify-center">
+                        <div className="w-12 h-12 rounded-xl bg-neutral-900 overflow-hidden border border-white/10 shrink-0 flex items-center justify-center">
                           {cover ? (
-                            <img
+                            <ImageWithSkeleton
                               src={cover}
                               alt={playlist.name}
                               className="w-full h-full object-cover"

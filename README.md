@@ -1,81 +1,62 @@
 Shawnkys Music
 
-Shawnkys Music adalah platform musik modern yang dirancang untuk memberikan pengalaman mendengarkan musik yang sederhana, nyaman, dan responsif.
+Shawnkys Music adalah aplikasi pemutar dan pencarian musik yang dikembangkan oleh Shawnkys.
 
-Aplikasi ini dibuat sebagai proyek pembelajaran dan pengembangan untuk mengeksplorasi pengembangan aplikasi musik berbasis web, termasuk pemutaran audio, pencarian musik, playlist, serta antarmuka pengguna modern.
-
-Features
-
-- Music search
-- Music playback
-- Playlist
-- Queue / antrean lagu
-- Cover artwork
-- Music metadata
-- Responsive design
-- Modern dark interface
-- Dynamic music background
-- Automatic song transition
-- Mobile-friendly experience
-
-Tech Stack
-
-- React
-- TypeScript
-- Vite
-- CSS
-- JavaScript / TypeScript APIs
-
-Data & Content
-
-Data musik dan metadata yang ditampilkan di Shawnkys Music diperoleh melalui layanan pihak ketiga.
-
-Shawnkys Music tidak mengklaim kepemilikan atas musik, artwork, metadata, atau konten lain yang ditampilkan melalui layanan tersebut. Seluruh hak atas konten tetap menjadi milik masing-masing pemilik atau pemegang hak.
-
-Purpose
-
-Shawnkys Music dibuat untuk tujuan:
-
-- Pembelajaran
-- Eksperimen teknologi
-- Pengembangan frontend
-- Eksplorasi sistem pemutar musik
-- Eksplorasi integrasi API pihak ketiga
-
-Development
-
-Clone repository:
-
-git clone https://github.com/Shawnkys7/ShawnkysMusic.git
-
-Masuk ke folder:
-
-cd ShawnkysMusic
-
-Install dependencies:
-
-npm install
-
-Jalankan development server:
-
-npm run dev
-
-Build untuk production:
-
-npm run build
-
-Disclaimer
-
-Shawnkys Music merupakan proyek independen dan tidak berafiliasi dengan layanan, label musik, artis, atau pemegang hak cipta yang kontennya dapat ditampilkan melalui aplikasi.
-
-Jika terdapat konten yang dianggap melanggar hak atau tidak seharusnya ditampilkan, silakan hubungi pengembang untuk peninjauan lebih lanjut.
-
-Developer
-
-Shawnkys
-
-Developed as an independent project for learning, experimentation, and web development.
+Aplikasi ini dibuat sebagai proyek untuk belajar dan mengembangkan aplikasi menggunakan vibe coding serta teknologi web.
 
 ---
 
-© Shawnkys
+Tentang
+
+Shawnkys Music menyediakan berbagai fitur untuk mendengarkan dan menemukan musik, seperti:
+
+- Pencarian musik
+- Pemutar musik
+- Playlist
+- Antrean lagu
+- Latar belakang yang menyesuaikan musik
+- Artwork dan metadata lagu
+- Tampilan responsif
+
+---
+
+Teknologi
+
+Shawnkys Music menggunakan:
+
+- Next.js
+- React
+- TypeScript
+- CSS
+- REST API
+
+---
+
+API
+
+Data musik dan metadata diperoleh melalui API pihak ketiga yang digunakan oleh aplikasi.
+
+API tersebut digunakan untuk menyediakan informasi seperti judul lagu, artis, artwork, album, dan data musik lainnya.
+
+Shawnkys Music tidak mengklaim kepemilikan atas konten yang diperoleh dari layanan pihak ketiga. Hak atas masing-masing konten tetap menjadi milik pemilik atau pemegang hak terkait.
+
+---
+
+Vibe Coding
+
+Pengembangan Shawnkys Music menggunakan pendekatan vibe coding, dengan AI yang digunakan untuk membantu proses penulisan, pengembangan, perbaikan, dan eksplorasi kode.
+
+---
+
+Pengembang
+
+Shawnkys
+
+Proyek ini dibuat dan dikembangkan sebagai proyek independen.
+
+---
+
+<p align="center">
+  <strong>Shawnkys Music</strong><br>
+  © 2026 Shawnkys
+</p>

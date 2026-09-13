@@ -1,0 +1,6 @@
+{
+  "name": "Shawnmusic",
+  "description": "Aplikasi streaming musik modern tanpa iklan dengan koleksi lagu populer Indonesia & global lengkap dengan lirik dan pemutaran audio berkualitas tinggi.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -561,12 +561,20 @@ export const SearchView: React.FC = () => {
                     }
                   }}
                 >
-                  {/* Square Cover Art - full frame */}
-                  <div className="relative w-12 h-12 rounded-xl overflow-hidden shrink-0 bg-neutral-900 border border-white/10 shadow-md">
-                    <ImageWithSkeleton
+                  {/* Square Cover Art - full frame matching Beranda */}
+                  <div className="relative w-12 h-12 rounded-[18px] overflow-hidden shrink-0 bg-neutral-900 border border-white/10 shadow-md">
+                    <img
                       src={song.image || (song.videoId ? `https://i.ytimg.com/vi/${song.videoId}/hqdefault.jpg` : '')}
                       alt={song.title}
                       className="w-full h-full object-cover"
+                      loading="lazy"
+                      referrerPolicy="no-referrer"
+                      onError={(e) => {
+                        const target = e.currentTarget;
+                        if (song.videoId && !target.src.includes('hqdefault.jpg')) {
+                          target.src = `https://i.ytimg.com/vi/${song.videoId}/hqdefault.jpg`;
+                        }
+                      }}
                     />
                     {isCurrent && (
                       <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-20">

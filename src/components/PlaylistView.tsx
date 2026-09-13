@@ -66,22 +66,31 @@ export const PlaylistView: React.FC = () => {
     if (selectedPlaylistData && selectedPlaylistData.id === activePlaylistId) {
       setPlaylist(selectedPlaylistData);
       const initialTracks = selectedPlaylistData.songs || [];
-      setSongs(initialTracks);
 
-      // If it's a community playlist or only has a preview (fewer than 20 songs), fetch the full 50-100 songs from scraper
-      if (!isUserPlaylist && initialTracks.length < 20) {
+      // If it's a community playlist, fetch full tracks and display skeleton until complete
+      if (!isUserPlaylist) {
         setIsLoading(true);
-        fetch(`/api/community-playlist-songs?id=${encodeURIComponent(selectedPlaylistData.id)}&title=${encodeURIComponent(selectedPlaylistData.name || '')}`)
+        fetch(
+          `/api/community-playlist-songs?id=${encodeURIComponent(selectedPlaylistData.id)}&title=${encodeURIComponent(selectedPlaylistData.name || '')}`
+        )
           .then((r) => (r.ok ? r.json() : []))
           .then((fullTracks) => {
             if (Array.isArray(fullTracks) && fullTracks.length > 0) {
               setSongs(fullTracks);
               setPlaylist((prev) => (prev ? { ...prev, songs: fullTracks } : prev));
+            } else {
+              setSongs(initialTracks);
             }
           })
-          .catch((err) => console.error('Error fetching full playlist tracks:', err))
-          .finally(() => setIsLoading(false));
+          .catch((err) => {
+            console.error('Error fetching full playlist tracks:', err);
+            setSongs(initialTracks);
+          })
+          .finally(() => {
+            setIsLoading(false);
+          });
       } else {
+        setSongs(initialTracks);
         setIsLoading(false);
       }
       return;
@@ -156,10 +165,13 @@ export const PlaylistView: React.FC = () => {
 
   const bannerCover = firstSongCover || validCustomCover || '';
 
-  if (isLoading && songs.length === 0) {
+  if (isLoading) {
     return (
       <PlaylistDetailSkeleton
-        onBack={() => setCurrentView('home')}
+        onBack={() => {
+          setActivePlaylistId(null);
+          setCurrentView('home');
+        }}
         title={playlist?.name || selectedPlaylistData?.name || 'Playlist'}
       />
     );

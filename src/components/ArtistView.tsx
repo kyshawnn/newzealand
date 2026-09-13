@@ -26,6 +26,7 @@ import {
 import { useMusic } from '../context/MusicContext';
 import { Song } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
+import { ArtistDetailSkeleton } from './PageSkeleton';
 
 export const ArtistView: React.FC = () => {
   const {
@@ -252,6 +253,15 @@ export const ArtistView: React.FC = () => {
       showToast('Tautan artis disalin ke papan klip');
     }
   };
+
+  if (isLoading) {
+    return (
+      <ArtistDetailSkeleton
+        onBack={() => setCurrentView('home')}
+        artistName={artistName}
+      />
+    );
+  }
 
   return (
     <div id="artist-page" className="pb-36 min-h-screen bg-[#111113] text-white select-none">

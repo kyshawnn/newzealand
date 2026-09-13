@@ -104,42 +104,16 @@ export const HomeView: React.FC = () => {
     setTimeout(() => setToastMessage(null), 2000);
   };
 
-  const handleOpenCommunityPlaylist = async (playlist: CommunityPlaylist) => {
-    const plTracks = playlist.tracks || playlist.songs || [];
-
-    // Open immediately with initial tracks
+  const handleOpenCommunityPlaylist = (playlist: CommunityPlaylist) => {
+    // Open with empty songs so PlaylistView triggers its full loading skeleton until the complete tracklist renders
     openPlaylist({
       id: playlist.id,
       name: playlist.title,
-      description: `Playlist Komunitas • ${playlist.trackCount || plTracks.length || '100'} lagu`,
+      description: `Playlist Komunitas • ${playlist.trackCount || '100'} lagu`,
       image: playlist.covers?.[0] || playlist.gridCovers?.[0],
-      songs: plTracks,
+      songs: [],
       createdAt: Date.now(),
     });
-
-    // Fetch full 100+ songs from scraper in background and update playlist
-    try {
-      const res = await fetch(
-        `/api/community-playlist-songs?id=${encodeURIComponent(playlist.id)}&title=${encodeURIComponent(
-          playlist.title
-        )}`
-      );
-      if (res.ok) {
-        const fullSongs: Song[] = await res.json();
-        if (Array.isArray(fullSongs) && fullSongs.length > 0) {
-          openPlaylist({
-            id: playlist.id,
-            name: playlist.title,
-            description: `Playlist Komunitas • ${fullSongs.length} lagu`,
-            image: playlist.covers?.[0] || playlist.gridCovers?.[0],
-            songs: fullSongs,
-            createdAt: Date.now(),
-          });
-        }
-      }
-    } catch (e) {
-      console.error('Error fetching full community playlist songs:', e);
-    }
   };
 
   // Helper to pick 4 random songs

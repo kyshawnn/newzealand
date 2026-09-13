@@ -350,7 +350,7 @@ export const Player: React.FC = () => {
         <div
           id="full-screen-player-modal"
           onClick={(e) => e.stopPropagation()}
-          className="fixed inset-0 z-50 bg-[#0A0A0C] flex flex-col justify-between p-5 sm:p-6 overflow-y-auto no-scrollbar pointer-events-auto animate-in fade-in slide-in-from-bottom-6 duration-300 relative"
+          className="fixed inset-0 top-0 left-0 right-0 bottom-0 w-full h-full h-[100dvh] z-[9999] bg-[#0A0A0C] flex flex-col justify-between p-4 sm:p-6 overflow-hidden pointer-events-auto select-none animate-in fade-in duration-200"
         >
           {/* Dynamic Background matching song artwork with slow smooth 2.5s transition */}
           <div className="absolute inset-0 pointer-events-none -z-10 overflow-hidden" aria-hidden="true">
@@ -477,135 +477,141 @@ export const Player: React.FC = () => {
 
           {/* TAB 1: TRACK VIEW (Artwork, Scrub Bar, Controls) */}
           {activeTab === 'track' && (
-            <div className="flex-1 flex flex-col justify-between max-w-md mx-auto w-full pt-1 pb-4 relative z-10">
-              {/* Square Artwork with elevated position to eliminate upper gap */}
-              <div className="relative aspect-square w-full max-w-[340px] sm:max-w-[380px] mx-auto rounded-[32px] overflow-hidden shadow-2xl bg-neutral-900 border border-white/10 mt-1 mb-5">
-                <img
-                  src={songImage}
-                  alt={currentSong.title || currentSong.name}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-
-              {/* Title & Artist & Like */}
-              <div className="flex items-center justify-between mb-4 px-1">
-                <div className="min-w-0 flex-1 pr-4">
-                  <h2 className="text-xl sm:text-2xl font-extrabold text-white truncate leading-tight">
-                    {currentSong.title || currentSong.name}
-                  </h2>
-                  <p
-                    onClick={() => {
-                      if (currentSong?.artist) {
-                        setIsPlayerExpanded(false);
-                        openArtist({ name: currentSong.artist });
-                      }
-                    }}
-                    className="text-xs sm:text-sm text-white/60 hover:text-white hover:underline font-medium truncate mt-1 cursor-pointer inline-block"
-                  >
-                    {currentSong.artist || currentSong.artists}
-                  </p>
+            <div className="flex-1 min-h-0 flex flex-col justify-between max-w-md mx-auto w-full py-1 relative z-10">
+              {/* Dynamic Artwork Scaling to fit any screen height without top gaps */}
+              <div className="flex-1 min-h-0 flex items-center justify-center py-2">
+                <div className="relative aspect-square max-h-[42vh] max-w-[80vw] w-full mx-auto rounded-[28px] sm:rounded-[36px] overflow-hidden shadow-2xl bg-neutral-900 border border-white/10">
+                  <img
+                    src={songImage}
+                    alt={currentSong.title || currentSong.name}
+                    className="w-full h-full object-cover"
+                    referrerPolicy="no-referrer"
+                  />
                 </div>
-
-                <button
-                  id="expanded-like-btn"
-                  onClick={() => toggleLike(currentSong)}
-                  className={`p-3 rounded-full transition-transform active:scale-90 cursor-pointer ${
-                    liked ? 'text-red-500' : 'text-white/50 hover:text-white'
-                  }`}
-                  title={liked ? 'Hapus Suka' : 'Sukai'}
-                >
-                  <Heart className={`w-6 h-6 ${liked ? 'fill-current' : ''}`} />
-                </button>
               </div>
 
-              {/* Timeline Slider with Clean White Trail & Thumb (No Neon) */}
-              <div className="mb-4 px-1">
-                <div className="relative w-full h-7 flex items-center group cursor-pointer select-none">
-                  {/* Background Track */}
-                  <div className="absolute left-0 right-0 h-1 bg-white/20 rounded-full overflow-hidden">
-                    {/* White Progress Trail behind the circle */}
-                    <div
-                      className="h-full bg-white rounded-full transition-all duration-75"
-                      style={{ width: `${progressPercent}%` }}
-                    />
+              {/* Bottom Controls Area */}
+              <div className="shrink-0 space-y-2.5 sm:space-y-3 pb-1">
+                {/* Title & Artist & Like */}
+                <div className="flex items-center justify-between px-1">
+                  <div className="min-w-0 flex-1 pr-3">
+                    <h2 className="text-xl sm:text-2xl font-extrabold text-white truncate leading-tight">
+                      {currentSong.title || currentSong.name}
+                    </h2>
+                    <p
+                      onClick={() => {
+                        if (currentSong?.artist) {
+                          setIsPlayerExpanded(false);
+                          openArtist({ name: currentSong.artist });
+                        }
+                      }}
+                      className="text-xs sm:text-sm text-white/60 hover:text-white hover:underline font-medium truncate mt-0.5 cursor-pointer inline-block"
+                    >
+                      {currentSong.artist || currentSong.artists}
+                    </p>
                   </div>
 
-                  {/* Moving Round Thumb (Clean White, No Neon Glow) */}
-                  <div
-                    className="absolute w-3.5 h-3.5 bg-white rounded-full -translate-x-1/2 pointer-events-none group-hover:scale-125 transition-transform"
-                    style={{ left: `${progressPercent}%` }}
-                  />
-
-                  {/* Interactive Range Input */}
-                  <input
-                    type="range"
-                    min="0"
-                    max={duration || 100}
-                    step="0.1"
-                    value={currentTime}
-                    onChange={handleSeek}
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                  />
+                  <button
+                    id="expanded-like-btn"
+                    onClick={() => toggleLike(currentSong)}
+                    className={`p-2.5 rounded-full transition-transform active:scale-90 cursor-pointer ${
+                      liked ? 'text-red-500' : 'text-white/50 hover:text-white'
+                    }`}
+                    title={liked ? 'Hapus Suka' : 'Sukai'}
+                  >
+                    <Heart className={`w-6 h-6 ${liked ? 'fill-current' : ''}`} />
+                  </button>
                 </div>
-                <div className="flex justify-between text-[11px] text-white/40 -mt-0.5 font-medium">
-                  <span>{formatTime(currentTime)}</span>
-                  <span>{formatTime(duration)}</span>
+
+                {/* Timeline Slider with Clean White Trail & Thumb (No Neon) */}
+                <div className="px-1">
+                  <div className="relative w-full h-7 flex items-center group cursor-pointer select-none">
+                    {/* Background Track */}
+                    <div className="absolute left-0 right-0 h-1 bg-white/20 rounded-full overflow-hidden">
+                      {/* White Progress Trail behind the circle */}
+                      <div
+                        className="h-full bg-white rounded-full transition-all duration-75"
+                        style={{ width: `${progressPercent}%` }}
+                      />
+                    </div>
+
+                    {/* Moving Round Thumb (Clean White, No Neon Glow) */}
+                    <div
+                      className="absolute w-3.5 h-3.5 bg-white rounded-full -translate-x-1/2 pointer-events-none group-hover:scale-125 transition-transform"
+                      style={{ left: `${progressPercent}%` }}
+                    />
+
+                    {/* Interactive Range Input */}
+                    <input
+                      type="range"
+                      min="0"
+                      max={duration || 100}
+                      step="0.1"
+                      value={currentTime}
+                      onChange={handleSeek}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                    />
+                  </div>
+                  <div className="flex justify-between text-[11px] text-white/40 -mt-1 font-medium">
+                    <span>{formatTime(currentTime)}</span>
+                    <span>{formatTime(duration)}</span>
+                  </div>
                 </div>
-              </div>
 
-              {/* Playback Controls Row */}
-              <div className="flex items-center justify-between px-2">
-                <button
-                  onClick={toggleShuffle}
-                  className={`p-2 transition-colors cursor-pointer ${
-                    isShuffle ? 'text-white' : 'text-white/40 hover:text-white'
-                  }`}
-                  title="Acak"
-                >
-                  <Shuffle className="w-5 h-5" />
-                </button>
+                {/* Playback Controls Row */}
+                <div className="flex items-center justify-between px-2 pt-1">
+                  <button
+                    onClick={toggleShuffle}
+                    className={`p-2 transition-colors cursor-pointer ${
+                      isShuffle ? 'text-white' : 'text-white/40 hover:text-white'
+                    }`}
+                    title="Acak"
+                  >
+                    <Shuffle className="w-5 h-5" />
+                  </button>
 
-                <button
-                  onClick={playPrev}
-                  className="p-2 text-white/80 hover:text-white transition-colors cursor-pointer"
-                  title="Sebelumnya"
-                >
-                  <SkipBack className="w-7 h-7" />
-                </button>
+                  <button
+                    onClick={playPrev}
+                    className="p-2 text-white/80 hover:text-white transition-colors cursor-pointer"
+                    title="Sebelumnya"
+                  >
+                    <SkipBack className="w-7 h-7" />
+                  </button>
 
-                <button
-                  onClick={togglePlay}
-                  className="w-16 h-16 rounded-full bg-white text-black flex items-center justify-center shadow-2xl hover:scale-105 active:scale-95 transition-transform cursor-pointer"
-                  title={isPlaying ? 'Jeda' : 'Putar'}
-                >
-                  {isPlaying ? (
-                    <Pause className="w-7 h-7 fill-current" />
-                  ) : (
-                    <Play className="w-7 h-7 fill-current ml-1" />
-                  )}
-                </button>
+                  <button
+                    onClick={togglePlay}
+                    className="w-16 h-16 rounded-full bg-white text-black flex items-center justify-center shadow-2xl hover:scale-105 active:scale-95 transition-transform cursor-pointer"
+                    title={isPlaying ? 'Jeda' : 'Putar'}
+                  >
+                    {isPlaying ? (
+                      <Pause className="w-7 h-7 fill-current" />
+                    ) : (
+                      <Play className="w-7 h-7 fill-current ml-1" />
+                    )}
+                  </button>
 
-                <button
-                  onClick={playNext}
-                  className="p-2 text-white/80 hover:text-white transition-colors cursor-pointer"
-                  title="Berikutnya"
-                >
-                  <SkipForward className="w-7 h-7" />
-                </button>
+                  <button
+                    onClick={playNext}
+                    className="p-2 text-white/80 hover:text-white transition-colors cursor-pointer"
+                    title="Berikutnya"
+                  >
+                    <SkipForward className="w-7 h-7" />
+                  </button>
 
-                <button
-                  onClick={toggleRepeat}
-                  className={`p-2 transition-colors cursor-pointer ${
-                    repeatMode !== 'off' ? 'text-white' : 'text-white/40 hover:text-white'
-                  }`}
-                  title="Ulangi"
-                >
-                  {repeatMode === 'one' ? (
-                    <Repeat1 className="w-5 h-5 text-white" />
-                  ) : (
-                    <Repeat className="w-5 h-5" />
-                  )}
-                </button>
+                  <button
+                    onClick={toggleRepeat}
+                    className={`p-2 transition-colors cursor-pointer ${
+                      repeatMode !== 'off' ? 'text-white' : 'text-white/40 hover:text-white'
+                    }`}
+                    title="Ulangi"
+                  >
+                    {repeatMode === 'one' ? (
+                      <Repeat1 className="w-5 h-5 text-white" />
+                    ) : (
+                      <Repeat className="w-5 h-5" />
+                    )}
+                  </button>
+                </div>
               </div>
             </div>
           )}

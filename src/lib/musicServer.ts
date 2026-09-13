@@ -245,33 +245,29 @@ export async function fetchSongsDirectly(query: string): Promise<SongItem[]> {
   };
 
   try {
-    const [searchRes, audiusRes] = await Promise.all([
-      fetch(
-        `https://www.jiosaavn.com/api.php?__call=search.getResults&_format=json&_marker=0&cc=in&includeMetaTags=1&q=${encodeURIComponent(
-          query
-        )}&p=1&n=20`,
-        { headers, signal: AbortSignal.timeout(2500) }
-      )
-        .then(async (r) => (r.ok ? r.json().catch(() => null) : null))
-        .catch((err) => {
-          console.warn(`[fetchSongsDirectly] JioSaavn network error for "${query}":`, err?.name, err?.message);
-          return null;
-        }),
-      fetch(`https://discoveryprovider.audius.co/v1/tracks/search?query=${encodeURIComponent(query)}&app_name=spotify_web_app`, {
-        signal: AbortSignal.timeout(2500),
-      })
-        .then(async (r) => (r.ok ? r.json().catch(() => null) : null))
-        .catch((err) => {
-          console.warn(`[fetchSongsDirectly] Audius network error for "${query}":`, err?.name, err?.message);
-          return null;
-        }),
-    ]);
+    const searchRes = await fetch(
+      `https://www.jiosaavn.com/api.php?__call=search.getResults&_format=json&_marker=0&cc=in&includeMetaTags=1&q=${encodeURIComponent(
+        query
+      )}&p=1&n=15`,
+      { headers, signal: AbortSignal.timeout(2000) }
+    )
+      .then(async (r) => (r.ok ? r.json().catch(() => null) : null))
+      .catch((err) => {
+        console.warn(`[fetchSongsDirectly] JioSaavn network error for "${query}":`, err?.name, err?.message);
+        return null;
+      });
 
     if (searchRes?.results && Array.isArray(searchRes.results)) {
       for (const item of searchRes.results) {
         if (item.encrypted_media_url && !seenIds.has(item.id)) {
           const urls = decryptMediaUrl(item.encrypted_media_url);
-          if (urls) {
+          const rawImg = item.image || '';
+          // Ensure image exists and is not a 404 placeholder
+          const validImg = rawImg && rawImg.startsWith('http')
+            ? rawImg.replace('150x150', '500x500').replace('50x50', '500x500')
+            : '';
+
+          if (urls && validImg) {
             seenIds.add(item.id);
             const title = cleanString(item.song, 'Lagu');
             const artist = cleanString(item.primary_artists || item.singers || item.music, 'Artis');
@@ -284,7 +280,7 @@ export async function fetchSongsDirectly(query: string): Promise<SongItem[]> {
               artists: artist,
               album,
               duration: parseInt(item.duration, 10) || 180,
-              image: (item.image || '').replace('150x150', '500x500').replace('50x50', '500x500'),
+              image: validImg,
               streamUrl: urls.primaryUrl,
               quality320: urls.quality320,
               quality160: urls.quality160,
@@ -292,33 +288,6 @@ export async function fetchSongsDirectly(query: string): Promise<SongItem[]> {
               year: item.year,
             });
           }
-        }
-      }
-    }
-
-    if (audiusRes?.data && Array.isArray(audiusRes.data)) {
-      for (const track of audiusRes.data) {
-        if (track.track_id && !seenIds.has(String(track.track_id))) {
-          seenIds.add(String(track.track_id));
-          const artwork = track.artwork?.['480x480'] || track.artwork?.['150x150'] || '';
-          const stream = `https://discoveryprovider.audius.co/v1/tracks/${track.track_id}/stream?app_name=spotify_web_app`;
-          const title = cleanString(track.title, 'Lagu');
-          const artist = cleanString(track.user?.name, 'Audius Creator');
-          const album = cleanString(track.genre, 'Single');
-          songs.push({
-            id: `audius_${track.track_id}`,
-            title,
-            name: title,
-            artist,
-            artists: artist,
-            album,
-            duration: Math.round(track.duration) || 180,
-            image: artwork,
-            streamUrl: stream,
-            quality320: stream,
-            quality160: stream,
-            source: 'audius',
-          });
         }
       }
     }

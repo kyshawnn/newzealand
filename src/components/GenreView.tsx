@@ -5,6 +5,7 @@ import { ChevronLeft, Play, MoreVertical, Sparkles, Loader2, Music, ListPlus, Pl
 import { useMusic } from '../context/MusicContext';
 import { Song } from '../types';
 import { ImageWithSkeleton } from './ImageWithSkeleton';
+import { GenreViewSkeleton } from './PageSkeleton';
 
 const GENRE_LIST = [
   'Focus',
@@ -171,10 +172,7 @@ export const GenreView: React.FC = () => {
       {/* Main Content Area */}
       <div className="px-4 py-5 max-w-7xl mx-auto space-y-8">
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-24 text-white/40">
-            <Loader2 className="w-8 h-8 animate-spin text-white mb-3" />
-            <p className="text-sm">Memuat trek suasana {activeGenre}...</p>
-          </div>
+          <GenreViewSkeleton />
         ) : (
           <>
             {/* Section 1: Feeling [genre] */}

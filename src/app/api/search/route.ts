@@ -31,22 +31,17 @@ export async function GET(req: NextRequest) {
 
       const queryLower = query.toLowerCase();
 
-      // Focused variations to prevent serverless timeout / external rate limits
+      // Focused variations to prioritize artist popular hits, official tracks & popular songs
       const searchVariations = [query];
       if (tokens.length >= 1) {
+        searchVariations.push(`${query} popular`);
         searchVariations.push(`${query} lagu`);
       }
 
-      // Concurrently query YouTube & direct music providers without redundant duplicates
-      const [scrapedBatches, directSongs] = await Promise.all([
-        Promise.allSettled(
-          searchVariations.slice(0, 2).map((v) => fetchYtTracks(v))
-        ),
-        fetchSongsDirectly(query).catch((err) => {
-          console.warn('[Search] direct songs fallback warning:', err?.name, err?.message);
-          return [];
-        }),
-      ]);
+      // Concurrently query YouTube for the primary variations
+      const scrapedBatches = await Promise.allSettled(
+        searchVariations.map((v) => fetchYtTracks(v))
+      );
 
       const pool: any[] = [];
       scrapedBatches.forEach((result, batchIdx) => {
@@ -61,31 +56,39 @@ export async function GET(req: NextRequest) {
         }
       });
 
-      if (Array.isArray(directSongs)) {
-        for (const s of directSongs) {
-          pool.push({
-            type: 'SONG',
-            videoId: s.id.startsWith('yt_') ? s.id.replace('yt_', '') : s.videoId || undefined,
-            id: s.id,
-            name: s.title,
-            title: s.title,
-            artist: s.artist,
-            artists: s.artist,
-            album: s.album,
-            duration: s.duration,
-            thumbnails: [{ url: s.image, width: 500, height: 500 }],
-            thumbnail: s.image,
-            streamUrl: s.streamUrl,
-            quality320: s.quality320,
-            quality160: s.quality160,
-            source: s.source || 'saavn',
-            _batchIdx: 1,
-            _itemIdx: 0,
-          });
+      // If YouTube returned fewer than 5 tracks, fetch direct fallback
+      if (pool.length < 5) {
+        try {
+          const directSongs = await fetchSongsDirectly(query);
+          if (Array.isArray(directSongs)) {
+            for (const s of directSongs) {
+              pool.push({
+                type: 'SONG',
+                videoId: s.id.startsWith('yt_') ? s.id.replace('yt_', '') : s.videoId || undefined,
+                id: s.id,
+                name: s.title,
+                title: s.title,
+                artist: s.artist,
+                artists: s.artist,
+                album: s.album,
+                duration: s.duration,
+                thumbnails: [{ url: s.image, width: 500, height: 500 }],
+                thumbnail: s.image,
+                streamUrl: s.streamUrl,
+                quality320: s.quality320,
+                quality160: s.quality160,
+                source: s.source || 'saavn',
+                _batchIdx: 3,
+                _itemIdx: 10,
+              });
+            }
+          }
+        } catch (err: any) {
+          console.warn('[Search] direct songs fallback warning:', err?.name, err?.message);
         }
       }
 
-      // Relevance and deduplication
+      // Relevance, artist prioritization, and deduplication
       const seenIds = new Set<string>();
       const scoredItems: { item: any; score: number }[] = [];
 
@@ -95,8 +98,8 @@ export async function GET(req: NextRequest) {
         if (!uniqueKey || seenIds.has(uniqueKey)) continue;
 
         const title = cleanString(item.name || item.title, '').toLowerCase();
-        const artist = cleanString(item.artist || item.artists, '').toLowerCase();
-        const album = cleanString(item.album, '').toLowerCase();
+        const artist = cleanString(typeof item.artist === 'string' ? item.artist : item.artist?.name || item.artists, '').toLowerCase();
+        const album = cleanString(typeof item.album === 'string' ? item.album : item.album?.name, '').toLowerCase();
         const full = `${title} ${artist} ${album}`;
 
         // Reject multi-hour compilations and placeholder titles
@@ -117,22 +120,47 @@ export async function GET(req: NextRequest) {
 
         let score = 0;
 
-        // Exact matches
-        if (title === queryLower) score += 100;
-        else if (title.startsWith(queryLower)) score += 80;
-        else if (title.includes(queryLower)) score += 60;
+        // 1. YouTube tracks have highest priority because they have authentic stream & cover
+        if (videoId && !videoId.startsWith('saavn_')) {
+          score += 120;
+        }
 
-        if (artist === queryLower) score += 70;
-        else if (artist.includes(queryLower)) score += 40;
+        // 2. High priority for matching artist keywords (User specifically requested: "prioritas kan musik2 populer/artis populer yang berkaitan dengan keywords yang di cari")
+        if (artist === queryLower) {
+          score += 300; // Perfect artist match gets highest ranking!
+        } else if (artist.startsWith(queryLower) || queryLower.startsWith(artist)) {
+          score += 240;
+        } else if (artist.includes(queryLower)) {
+          score += 180;
+        }
 
-        // Token match
+        // 3. Title exact and partial matches
+        if (title === queryLower) {
+          score += 140;
+        } else if (title.startsWith(queryLower)) {
+          score += 100;
+        } else if (title.includes(queryLower)) {
+          score += 65;
+        }
+
+        // 4. Boost official, original, verified hits
+        if (full.includes('official') || full.includes('audio') || full.includes('music video')) {
+          score += 30;
+        }
+
+        // 5. Standard song duration bonus (2 to 6 minutes)
+        if (dur >= 120 && dur <= 380) {
+          score += 20;
+        }
+
+        // 6. Token matching
         let matchedTokens = 0;
         for (const token of tokens) {
-          if (title.includes(token)) {
-            score += 25;
+          if (artist.includes(token)) {
+            score += 35;
             matchedTokens++;
-          } else if (artist.includes(token)) {
-            score += 15;
+          } else if (title.includes(token)) {
+            score += 20;
             matchedTokens++;
           }
         }
@@ -141,14 +169,20 @@ export async function GET(req: NextRequest) {
           continue;
         }
 
-        // Penalty for low quality covers / slowed
+        // Penalty for low quality covers / slowed / reverb unless searched
         if (
-          title.includes('slowed') ||
-          title.includes('reverb') ||
-          title.includes('bass boosted') ||
-          title.includes('remix')
+          !queryLower.includes('slowed') &&
+          !queryLower.includes('reverb') &&
+          !queryLower.includes('remix')
         ) {
-          score -= 15;
+          if (
+            title.includes('slowed') ||
+            title.includes('reverb') ||
+            title.includes('bass boosted') ||
+            title.includes('remix')
+          ) {
+            score -= 30;
+          }
         }
 
         // Penalty for deep in batch
@@ -161,18 +195,21 @@ export async function GET(req: NextRequest) {
 
       scoredItems.sort((a, b) => b.score - a.score);
       let formatted: any[] = scoredItems.slice(0, 45).map(({ item }) => {
-        const vId = item.videoId || (item.id && item.id.replace('yt_', '')) || '';
+        const vId = item.videoId || (item.id && !item.id.startsWith('saavn_') ? item.id.replace('yt_', '') : '') || '';
         let bestThumb = item.thumbnails?.[item.thumbnails.length - 1]?.url || item.thumbnail || item.image;
         if (bestThumb && bestThumb.includes('googleusercontent.com')) {
           bestThumb = bestThumb.replace(/=w\d+-h\d+.*$/, '=w600-h600-l90-rj');
         }
-        if (!bestThumb && vId) {
-          bestThumb = `https://i.ytimg.com/vi/${vId}/hqdefault.jpg`;
+        // Guarantee authentic YouTube thumbnail if image is missing, low-res or broken
+        if (!bestThumb || !bestThumb.startsWith('http') || bestThumb.includes('saavncdn') || bestThumb.includes('default.jpg')) {
+          if (vId) {
+            bestThumb = `https://i.ytimg.com/vi/${vId}/hqdefault.jpg`;
+          }
         }
 
         const t = cleanString(item.name || item.title, 'Lagu');
-        const a = cleanString(item.artist || item.artists, 'Artis');
-        const alb = cleanString(item.album, 'YouTube Music');
+        const a = cleanString(typeof item.artist === 'string' ? item.artist : item.artist?.name || item.artists, 'Artis');
+        const alb = cleanString(typeof item.album === 'string' ? item.album : item.album?.name, 'YouTube Music');
 
         return {
           id: `yt_${vId || item.id}`,
@@ -183,7 +220,7 @@ export async function GET(req: NextRequest) {
           artists: a,
           album: alb,
           duration: typeof item.duration === 'number' ? item.duration : 210,
-          image: bestThumb || 'https://i.ytimg.com/vi/default/hqdefault.jpg',
+          image: bestThumb || (vId ? `https://i.ytimg.com/vi/${vId}/hqdefault.jpg` : ''),
           streamUrl: item.streamUrl,
           quality320: item.quality320,
           quality160: item.quality160,

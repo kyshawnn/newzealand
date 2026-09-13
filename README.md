@@ -1,100 +1,62 @@
-<div align="center">Shawnkys Music
+Shawnkys Music
 
-Aplikasi pemutar dan pencarian musik yang dikembangkan oleh Shawnkys.
+Shawnkys Music adalah aplikasi pemutar dan pencarian musik yang dikembangkan oleh Shawnkys.
 
-""Next.js" (https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=next.js&logoColor=white)" (https://nextjs.org/)
-""React" (https://img.shields.io/badge/React-2026-61DAFB?style=for-the-badge&logo=react&logoColor=white)" (https://react.dev/)
-""TypeScript" (https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)" (https://www.typescriptlang.org/)
-
-</div>---
-
-Tentang
-
-Shawnkys Music dibuat sebagai proyek untuk belajar dan mengembangkan aplikasi menggunakan vibe coding serta teknologi web.
-
-Aplikasi ini berfokus pada pengalaman mencari dan mendengarkan musik dengan tampilan yang sederhana dan nyaman digunakan.
+Aplikasi ini dibuat sebagai proyek untuk belajar dan mengembangkan aplikasi menggunakan vibe coding serta teknologi web.
 
 ---
 
-Fitur
+Tentang
 
-<table>
-<tr>
-<td width="50%">Musik
+Shawnkys Music menyediakan berbagai fitur untuk mendengarkan dan menemukan musik, seperti:
 
 - Pencarian musik
 - Pemutar musik
 - Playlist
 - Antrean lagu
-
-</td>
-<td width="50%">Tampilan
-
-- Latar belakang menyesuaikan musik
-- Artwork & metadata
+- Latar belakang yang menyesuaikan musik
+- Artwork dan metadata lagu
 - Tampilan responsif
-- Dukungan perangkat mobile
 
-</td>
-</tr>
-</table>---
+---
 
 Teknologi
 
-<div align="center">Teknologi| Penggunaan
-Next.js| Framework aplikasi
-React| Antarmuka
-TypeScript| Pengembangan kode
-CSS| Styling & tampilan
-REST API| Pengambilan data
+Shawnkys Music menggunakan:
 
-</div>---
+- Next.js
+- React
+- TypeScript
+- CSS
+- REST API
 
-API Pihak Ketiga
+---
 
-Data musik dan metadata pada Shawnkys Music diperoleh melalui API pihak ketiga.
+API
 
-API digunakan untuk menyediakan berbagai informasi seperti:
+Data musik dan metadata diperoleh melalui API pihak ketiga yang digunakan oleh aplikasi.
 
-- Judul lagu
-- Artis
-- Album
-- Artwork
-- Metadata musik
-- Informasi terkait lainnya
+API tersebut digunakan untuk menyediakan informasi seperti judul lagu, artis, artwork, album, dan data musik lainnya.
 
-Shawnkys Music tidak mengklaim kepemilikan atas konten yang diperoleh melalui layanan pihak ketiga. Seluruh hak atas konten tetap menjadi milik masing-masing pemilik atau pemegang hak terkait.
+Shawnkys Music tidak mengklaim kepemilikan atas konten yang diperoleh dari layanan pihak ketiga. Hak atas masing-masing konten tetap menjadi milik pemilik atau pemegang hak terkait.
 
 ---
 
 Vibe Coding
 
-Pengembangan Shawnkys Music menggunakan pendekatan vibe coding, dengan AI sebagai bagian dari proses pengembangan.
-
-AI digunakan untuk membantu:
-
-- Menulis kode
-- Mengembangkan fitur
-- Mencari dan memperbaiki masalah
-- Mengeksplorasi ide
-- Menyempurnakan implementasi
-
-Seluruh proses tetap melalui pengujian, penyesuaian, dan pengembangan secara bertahap.
+Pengembangan Shawnkys Music menggunakan pendekatan vibe coding, dengan AI yang digunakan untuk membantu proses penulisan, pengembangan, perbaikan, dan eksplorasi kode.
 
 ---
 
 Pengembang
 
-<div align="center">Shawnkys
+Shawnkys
 
-Proyek ini dibuat dan dikembangkan secara independen sebagai bagian dari proses belajar dan pengembangan Shawnkys Music.
+Proyek ini dibuat dan dikembangkan sebagai proyek independen.
 
-</div>---
+---
 
-<div align="center">Shawnkys Music
-
-Dibuat untuk mendengarkan, dikembangkan untuk terus berkembang.
-
-<br>© 2026 Shawnkys
-
-</div>
+<p align="center">
+  <strong>Shawnkys music</strong><br>
+  © 2026 Shawnkys
+</p>
